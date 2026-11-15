@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#11131a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="./manifest.json" />
+  <title>小祕</title>
+  <style>
+    :root {
+      --glass-bg: rgba(18, 20, 28, 0.58);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --accent: #ff7eb3;
+      --accent-blue: #60a5fa;
+      --text-main: #ffffff;
+      --text-sub: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0f1117;
+      color: var(--text-main);
+    }
+
+    /* 1. 動態場景背景 */
+    #scene-bg {
+      position: fixed;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.9s ease-in-out;
+      z-index: 1;
+    }
+    #scene-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 72%, rgba(0,0,0,0.7) 100%);
+    }
+
+    /* 2. 小祕全身立繪舞台（完整呈現修長比例，絕不被對話框遮擋） */
+    #character-stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 2;
+      pointer-events: none;
+      padding-bottom: calc(66px + env(safe-area-inset-bottom));
+    }
+
+    @keyframes gentleBreathe {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-5px) scale(1.007); }
+    }
+
+    @keyframes speakingBounce {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.012); }
+    }
+
+    #character-img {
+      height: 85vh;
+      max-width: 94vw;
+      object-fit: contain;
+      animation: gentleBreathe 4.2s ease-in-out infinite;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,0.5));
+      transition: opacity 0.4s ease;
+    }
+    #character-img.speaking {
+      animation: speakingBounce 0.6s ease-in-out infinite;
+    }
+
+    /* 3. 頂部狀態列與控制鈕 */
+    #top-bar {
+      position: fixed;
+      top: calc(12px + env(safe-area-inset-top));
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      gap: 8px;
+    }
+
+    .status-pill {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+      flex-shrink: 0;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      padding: 6px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .icon-btn:active {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* 下拉歷史紀錄選單（預設收合，點擊才展開） */
+    #history-dropdown {
+      position: fixed;
+      top: calc(52px + env(safe-area-inset-top));
+      right: 14px;
+      width: min(340px, calc(100vw - 28px));
+      max-height: 0;
+      overflow: hidden;
+      background: rgba(16, 18, 26, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 16px;
+      border: 1px solid transparent;
+      z-index: 25;
+      transition: max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1), padding 0.25s, border-color 0.25s;
+    }
+
+    #history-dropdown.open {
+      max-height: 52vh;
+      border-color: var(--glass-border);
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 1.45;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .history-item:last-child { border-bottom: none; margin-bottom: 0; }
+    .history-role { font-weight: 600; color: var(--accent); margin-right: 6px; }
+    .history-role.user { color: var(--accent-blue); }
+
+    /* 4. 單句最新對話氣泡（僅顯示最新一則，不遮擋人物） */
+    #latest-bubble-wrap {
+      position: fixed;
+      bottom: calc(74px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(480px, calc(100vw - 28px));
+      z-index: 8;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    #latest-bubble {
+      background: rgba(15, 17, 24, 0.76);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 10px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      pointer-events: auto;
+      transition: opacity 0.2s ease;
+    }
+
+    /* 5. 底部極簡控制列（微信按住說話 + 文字切換） */
+    #bottom-bar {
+      position: fixed;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(480px, calc(100vw - 24px));
+      height: 48px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      padding: 4px 6px;
+      gap: 6px;
+      z-index: 15;
+    }
+
+    .mode-toggle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #text-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      padding: 0 10px;
+      outline: none;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    #text-input::placeholder { color: rgba(255,255,255,0.5); }
+
+    #hold-talk-btn {
+      flex: 1;
+      height: 38px;
+      border-radius: 19px;
+      border: none;
+      background: rgba(255,255,255,0.16);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+    }
+    #hold-talk-btn.recording { background: var(--accent); color: #111; font-weight: 700; transform: scale(0.98); }
+    #hold-talk-btn.canceling { background: #ef4444; color: #fff; }
+
+    #send-btn {
+      height: 38px;
+      padding: 0 16px;
+      border-radius: 19px;
+      border: none;
+      background: var(--accent);
+      color: #111;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* 6. 錄音浮動提示 */
+    #voice-overlay {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 17, 24, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 20px 26px;
+      border-radius: 20px;
+      text-align: center;
+      z-index: 30;
+      display: none;
+    }
+
+    /* 7. 設定彈窗（API Key、AI大腦與語音雙切、圖片路徑） */
+    #settings-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #settings-modal.show { display: flex; }
+
+    .modal-card {
+      background: #161923;
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      width: min(420px, 100%);
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 5px; }
+    .form-control {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-control option { background: #161923; color: #fff; }
+    .btn-save {
+      width: 100%;
+      padding: 11px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #111;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-danger {
+      width: 100%;
+      padding: 9px;
+      border-radius: 12px;
+      border: 1px solid rgba(239,68,68,0.4);
+      background: rgba(239,68,68,0.15);
+      color: #fca5a5;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景層 -->
+  <div id="scene-bg"></div>
+
+  <!-- 角色全身立繪舞台 -->
+  <div id="character-stage">
