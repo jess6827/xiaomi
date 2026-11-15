@@ -11,12 +11,12 @@
     #bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: 1; }
     #char { position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%); height: 84vh; max-width: 94vw; object-fit: contain; z-index: 2; pointer-events: none; }
     #top { position: fixed; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 10; }
-    .btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
-    #hist { position: fixed; top: 52px; right: 14px; width: 300px; max-height: 45vh; overflow-y: auto; background: rgba(16,18,26,0.92); border: 1px solid #444; border-radius: 14px; padding: 12px; display: none; z-index: 20; font-size: 13px; }
-    #bubble { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 460px; background: rgba(0,0,0,0.78); border: 1px solid rgba(255,255,255,0.2); padding: 10px 16px; border-radius: 16px; text-align: center; font-size: 14px; z-index: 8; }
-    #bar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 460px; height: 48px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25); border-radius: 24px; display: flex; align-items: center; padding: 4px 8px; gap: 6px; z-index: 15; }
+    .btn { background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+    #hist { position: fixed; top: 52px; right: 14px; width: 300px; max-height: 45vh; overflow-y: auto; background: rgba(16,18,26,0.94); border: 1px solid #444; border-radius: 14px; padding: 12px; display: none; z-index: 20; font-size: 13px; }
+    #bubble { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 460px; background: rgba(0,0,0,0.82); border: 1px solid rgba(255,255,255,0.25); padding: 10px 16px; border-radius: 16px; text-align: center; font-size: 14px; z-index: 8; }
+    #bar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 460px; height: 48px; background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,255,0.25); border-radius: 24px; display: flex; align-items: center; padding: 4px 8px; gap: 6px; z-index: 15; }
     #inp { flex: 1; background: transparent; border: none; color: #fff; font-size: 15px; outline: none; display: none; }
-    #hold { flex: 1; height: 38px; border-radius: 19px; border: none; background: rgba(255,255,255,0.2); color: #fff; font-weight: bold; cursor: pointer; }
+    #hold { flex: 1; height: 38px; border-radius: 19px; border: none; background: rgba(255,255,255,0.2); color: #fff; font-weight: bold; cursor: pointer; user-select: none; -webkit-user-select: none; }
     #hold.on { background: #ff7eb3; color: #111; }
     #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
     .card { background: #1e2230; border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; }
@@ -57,6 +57,8 @@
   <script>
     var cfg = Object.assign({ key: "", v: "sweet", w: "https://placehold.co", h: "https://placehold.co" }, JSON.parse(localStorage.getItem("xm_c") || "{}"));
     var logs = JSON.parse(localStorage.getItem("xm_l") || "[]"), mode = "work", voiceMode = true;
+    var bbl = document.getElementById("bubble");
+
     function setMode(m) {
       mode = m;
       document.getElementById("stat").textContent = m === "work" ? "上班 · 高馬尾" : "居家 · 長髮";
@@ -73,23 +75,27 @@
     function push(who, txt, spk) {
       logs.push({ who: who, txt: txt }); if (logs.length > 40) logs.shift();
       localStorage.setItem("xm_l", JSON.stringify(logs));
-      document.getElementById("bubble").textContent = txt;
+      bbl.textContent = txt;
       document.getElementById("hist").innerHTML = logs.map(function(x) { return "<div style='margin-bottom:6px;'><b>" + x.who + "：</b>" + x.txt + "</div>"; }).join("");
       if (spk) speak(txt);
     }
     async function ask(q) {
       push("你", q, false);
       if (!cfg.key) return push("小祕", "請先點右上角 ⚙️ 填入免費 Gemini 金鑰喔！", true);
-      document.getElementById("bubble").textContent = "思考中...";
+      bbl.textContent = "小祕思考中...";
       try {
         var r = await fetch("https://googleapis.com" + cfg.key, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: "你是可愛貼心的專屬AI秘書「小祕」，現在是" + (mode === "work" ? "上班高馬尾時間" : "居家長髮時間") + "。請用繁體中文簡短回覆：" + q }] }] })
         });
         var d = await r.json();
-        push("小祕", d.candidates.content.parts.text.trim(), true);
-      } catch (e) { push("小祕", "連線失敗，請檢查金鑰", false); }
+        if (d.error) return push("小祕", "金鑰錯誤：" + d.error.message, false);
+        var cand = d.candidates.at(0);
+        var part = cand.content.parts.at(0);
+        push("小祕", part.text.trim(), true);
+      } catch (e) { push("小祕", "連線失敗，請檢查網路或金鑰", false); }
     }
+
     document.getElementById("vBtn").onclick = function() {
       var o = ["sweet", "gentle", "mute"]; cfg.v = o[(o.indexOf(cfg.v) + 1) % 3];
       localStorage.setItem("xm_c", JSON.stringify(cfg));
@@ -117,14 +123,44 @@
       document.getElementById("send").style.display = voiceMode ? "none" : "block";
     };
     document.getElementById("send").onclick = function() { var v = document.getElementById("inp").value.trim(); if (v) { document.getElementById("inp").value = ""; ask(v); } };
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition, rec = SR ? new SR() : null, buf = "";
-    if (rec) { rec.lang = "zh-TW"; rec.onresult = function(e) { buf = e.results.transcript; }; }
+    document.getElementById("inp").onkeydown = function(e) { if (e.key === "Enter") document.getElementById("send").click(); };
+
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var rec = SR ? new SR() : null, buf = "", holding = false;
+    if (rec) {
+      rec.lang = "zh-TW";
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = function(e) {
+        var txt = "";
+        for (var i = 0; i < e.results.length; i++) {
+          txt += e.results.item(i).item(0).transcript;
+        }
+        buf = txt;
+        if (holding) bbl.textContent = "正在聆聽：" + (buf || "...");
+      };
+      rec.onerror = function(e) {
+        bbl.textContent = "麥克風提示：" + e.error;
+      };
+    }
+
     var hBtn = document.getElementById("hold");
-    function startR() { buf = ""; hBtn.classList.add("on"); hBtn.textContent = "鬆開 傳送"; if (rec) try { rec.start(); } catch(e){} }
-    function stopR() { hBtn.classList.remove("on"); hBtn.textContent = "按住 說話"; if (rec) try { rec.stop(); } catch(e){} setTimeout(function(){ if (buf) ask(buf); }, 300); }
-    hBtn.ontouchstart = function(e) { e.preventDefault(); startR(); }; hBtn.ontouchend = function(e) { e.preventDefault(); stopR(); };
-    hBtn.onmousedown = startR; hBtn.onmouseup = stopR;
-    var hr = new Date().getHours(); setMode((hr >= 8 && hr < 18) ? "work" : "home");
-  </script>
-</body>
-</html>
+    function startR() {
+      if (!rec) { bbl.textContent = "此瀏覽器不支援語音，請點左下角 ⌨️ 打字。"; return; }
+      holding = true; buf = "";
+      hBtn.classList.add("on"); hBtn.textContent = "鬆開 傳送";
+      bbl.textContent = "正在聆聽，請說話...";
+      try { rec.start(); } catch(e) {}
+    }
+    function stopR() {
+      if (!holding) return;
+      holding = false;
+      hBtn.classList.remove("on"); hBtn.textContent = "按住 說話";
+      if (rec) try { rec.stop(); } catch(e) {}
+      setTimeout(function() {
+        if (buf.trim()) { ask(buf.trim()); }
+        else { bbl.textContent = "沒聽清楚喔，請再按住說話一次（或點左下角 ⌨️ 打字）。"; }
+      }, 400);
+    }
+
+    hBtn.ontouchstart = function(e) { e.preventDefault(); startR(); };
