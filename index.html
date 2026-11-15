@@ -46,6 +46,7 @@
     .form-control { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 9px 12px; color: #fff; font-size: 13px; outline: none; }
     .form-control option { background: #1e2230; color: #fff; }
     .btn-save { width: 100%; padding: 11px; border-radius: 12px; border: none; background: var(--accent); color: #111; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 6px; }
+    .btn-test { width: 100%; padding: 9px; border-radius: 12px; border: 1px solid var(--accent-blue); background: rgba(96,165,250,0.2); color: #93c5fd; font-size: 13px; cursor: pointer; margin-top: 8px; }
     .btn-danger { width: 100%; padding: 9px; border-radius: 12px; border: 1px solid #ef4444; background: rgba(239,68,68,0.2); color: #fca5a5; font-size: 13px; cursor: pointer; margin-top: 8px; }
   </style>
 </head>
@@ -55,7 +56,7 @@
   <div id="top-bar">
     <div class="status-pill"><span class="status-dot"></span><span id="schedule-status">載入中...</span></div>
     <div class="top-actions">
-      <button class="icon-btn" id="voice-quick-btn">🔊 Nova</button>
+      <button class="icon-btn" id="voice-quick-btn">🔊 甜美</button>
       <button class="icon-btn" id="sim-time-btn">換裝</button>
       <button class="icon-btn" id="history-toggle-btn">紀錄 ▾</button>
       <button class="icon-btn" id="settings-btn">⚙️</button>
@@ -67,7 +68,7 @@
     <div id="voice-status-text" style="font-weight:bold; margin-bottom:4px;">正在聆聽...</div>
     <div id="voice-hint-text" style="font-size:12px; color:var(--text-sub);">鬆開傳送，手指上滑取消</div>
   </div>
-  <div id="latest-bubble-wrap"><div id="latest-bubble">早安！點擊右上角 ⚙️ 填入 API Key，我就能陪你聊天囉。</div></div>
+  <div id="latest-bubble-wrap"><div id="latest-bubble">早安！點擊右上角 ⚙️ 填入免費 Gemini 金鑰，就能開始聊天囉。</div></div>
   <div id="bottom-bar">
     <button class="mode-toggle" id="input-mode-btn">⌨️</button>
     <input type="text" id="text-input" placeholder="跟小祕說點什麼..." style="display:none;" />
@@ -76,12 +77,11 @@
   </div>
   <div id="settings-modal">
     <div class="modal-card">
-      <div class="modal-title"><span>小祕專屬設定</span><span id="close-settings" style="cursor:pointer;">✕</span></div>
-      <div class="form-group"><label>對話大腦模型</label><select id="cfg-provider" class="form-control"><option value="openai">OpenAI (GPT-4o-mini)</option><option value="deepseek">DeepSeek (DeepSeek-Chat)</option></select></div>
-      <div class="form-group"><label>OpenAI API Key（支援對話與 Nova 擬真女聲）</label><input type="password" id="cfg-openai-key" class="form-control" placeholder="sk-..." /></div>
-      <div class="form-group"><label>DeepSeek API Key（選填）</label><input type="password" id="cfg-deepseek-key" class="form-control" placeholder="sk-..." /></div>
-      <div class="form-group"><label>小祕聲音引擎（雙模式切換）</label><select id="cfg-tts-mode" class="form-control"><option value="openai-nova">OpenAI 擬真女聲（nova 聲線）</option><option value="browser-free">手機免費內建語言包（零花費）</option><option value="mute">靜音模式</option></select></div>
-      <div class="form-group"><label>上班高馬尾全身立繪網址</label><input type="text" id="cfg-work-img" class="form-control" /></div>
+      <div class="modal-title"><span>小祕免費版設定</span><span id="close-settings" style="cursor:pointer;">✕</span></div>
+      <div class="form-group"><label>Google Gemini 免費 API Key（AIza...開頭）</label><input type="password" id="cfg-gemini-key" class="form-control" placeholder="AIza..." /></div>
+      <div class="form-group"><label>小祕聲線風格（免費內建，可點下方試聽）</label><select id="cfg-voice-style" class="form-control"><option value="sweet">甜美鄰家女聲（語調輕快可愛）</option><option value="gentle">溫柔知性秘書（語氣柔和穩重）</option><option value="mute">靜音模式</option></select></div>
+      <button class="btn-test" id="test-voice-btn">🔊 點擊立即試聽目前聲線</button>
+      <div class="form-group" style="margin-top:12px;"><label>上班高馬尾全身立繪網址</label><input type="text" id="cfg-work-img" class="form-control" /></div>
       <div class="form-group"><label>居家長髮全身立繪網址</label><input type="text" id="cfg-home-img" class="form-control" /></div>
       <button class="btn-save" id="save-settings-btn">儲存設定</button>
       <button class="btn-danger" id="clear-history-btn">清空對話紀錄</button>
@@ -90,16 +90,15 @@
   <script>
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(function(){});
     var DEFAULT_CONFIG = {
-      provider: "openai", openaiKey: "", deepseekKey: "", ttsMode: "openai-nova",
+      geminiKey: "", voiceStyle: "sweet",
       workCharImg: "https://placehold.co",
       homeCharImg: "https://placehold.co",
       workBgImg: "https://unsplash.com",
       homeBgImg: "https://unsplash.com"
     };
-    var savedCfg = JSON.parse(localStorage.getItem("xiaomi_cfg") || "{}");
-    var appConfig = Object.assign({}, DEFAULT_CONFIG, savedCfg);
+    var appConfig = Object.assign({}, DEFAULT_CONFIG, JSON.parse(localStorage.getItem("xiaomi_cfg_free") || "{}"));
     var chatHistory = JSON.parse(localStorage.getItem("xiaomi_history") || "[]");
-    var currentSchedule = "work", isVoiceInput = true, currentAudio = null;
+    var currentSchedule = "work", isVoiceInput = true;
 
     var sceneBg = document.getElementById("scene-bg"), charImg = document.getElementById("character-img");
     var scheduleStatus = document.getElementById("schedule-status"), voiceQuickBtn = document.getElementById("voice-quick-btn");
@@ -117,12 +116,9 @@
     function applySchedule(mode, greet) {
       currentSchedule = mode;
       scheduleStatus.textContent = mode === "work" ? "上班中 · 高馬尾" : "居家陪伴 · 長髮";
-      var bgUrl = mode === "work" ? appConfig.workBgImg : appConfig.homeBgImg;
-      sceneBg.style.backgroundImage = "url('" + bgUrl + "')";
+      sceneBg.style.backgroundImage = "url('" + (mode === "work" ? appConfig.workBgImg : appConfig.homeBgImg) + "')";
       charImg.src = mode === "work" ? appConfig.workCharImg : appConfig.homeCharImg;
-      if (greet && chatHistory.length === 0) {
-        addMessage("小祕", mode === "work" ? "早安！現在是工作時段，有什麼需要我幫你處理的嗎？" : "辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？", false);
-      }
+      if (greet && chatHistory.length === 0) addMessage("小祕", mode === "work" ? "早安！現在是工作時段，有什麼需要我幫你處理的嗎？" : "辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？", false);
     }
     simTimeBtn.addEventListener("click", function() {
       var next = currentSchedule === "work" ? "home" : "work";
@@ -130,53 +126,42 @@
       addMessage("小祕", next === "work" ? "換好上班套裝囉，我們開始吧！" : "換上居家服舒服多了～想聊點什麼呢？", true);
     });
 
-    function updateVoiceQuickBtnUI() {
-      voiceQuickBtn.textContent = appConfig.ttsMode === "openai-nova" ? "🔊 Nova" : (appConfig.ttsMode === "browser-free" ? "🔈 免費語音" : "🔇 靜音");
+    function updateVoiceBtnUI() {
+      voiceQuickBtn.textContent = appConfig.voiceStyle === "sweet" ? "🔊 甜美" : (appConfig.voiceStyle === "gentle" ? "🔈 溫柔" : "🔇 靜音");
     }
     voiceQuickBtn.addEventListener("click", function() {
-      var order = ["openai-nova", "browser-free", "mute"];
-      appConfig.ttsMode = order[(order.indexOf(appConfig.ttsMode) + 1) % order.length];
-      localStorage.setItem("xiaomi_cfg", JSON.stringify(appConfig));
-      updateVoiceQuickBtnUI();
+      var order = ["sweet", "gentle", "mute"];
+      appConfig.voiceStyle = order[(order.indexOf(appConfig.voiceStyle) + 1) % order.length];
+      localStorage.setItem("xiaomi_cfg_free", JSON.stringify(appConfig));
+      updateVoiceBtnUI();
+      if (appConfig.voiceStyle !== "mute") speakText("你好呀，我是小祕，這樣講話你喜歡嗎？");
     });
 
-    async function speakText(text) {
-      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    function speakText(text, forceStyle) {
       window.speechSynthesis.cancel();
       charImg.classList.remove("speaking");
-      if (appConfig.ttsMode === "mute") return;
-      if (appConfig.ttsMode === "openai-nova" && appConfig.openaiKey) {
-        try {
-          charImg.classList.add("speaking");
-          var ttsUrl = "https://openai.com";
-          var res = await fetch(ttsUrl, {
-            method: "POST",
-            headers: { "Authorization": "Bearer " + appConfig.openaiKey, "Content-Type": "application/json" },
-            body: JSON.stringify({ model: "tts-1", input: text, voice: "nova", speed: 1.02 })
-          });
-          if (!res.ok) throw new Error("TTS Error");
-          var url = URL.createObjectURL(await res.blob());
-          currentAudio = new Audio(url);
-          currentAudio.onended = function() { charImg.classList.remove("speaking"); URL.revokeObjectURL(url); };
-          await currentAudio.play();
-          return;
-        } catch (e) {}
-      }
+      var style = forceStyle || appConfig.voiceStyle;
+      if (style === "mute") return;
       var utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "zh-TW"; utter.pitch = 1.08;
+      utter.lang = "zh-TW";
+      var voices = window.speechSynthesis.getVoices();
+      var zhVoice = voices.find(function(v) { return v.lang.indexOf("zh") !== -1 && (v.name.indexOf("HsiaoChen") !== -1 || v.name.indexOf("Xiaoxiao") !== -1 || v.name.indexOf("Female") !== -1 || v.name.indexOf("Google") !== -1); });
+      if (zhVoice) utter.voice = zhVoice;
+      utter.pitch = style === "sweet" ? 1.18 : 1.02;
+      utter.rate = style === "sweet" ? 1.05 : 0.96;
       utter.onstart = function() { charImg.classList.add("speaking"); };
       utter.onend = function() { charImg.classList.remove("speaking"); };
+      utter.onerror = function() { charImg.classList.remove("speaking"); };
       window.speechSynthesis.speak(utter);
     }
+    if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
 
     function renderHistory() {
       historyDropdown.innerHTML = "";
       chatHistory.forEach(function(item) {
         var div = document.createElement("div");
         div.className = "history-item";
-        var roleCls = item.role === "user" ? "history-role user" : "history-role";
-        var roleName = item.role === "user" ? "你" : "小祕";
-        div.innerHTML = "<span class='" + roleCls + "'>" + roleName + "</span><span style='color:#888;font-size:11px;'>" + item.time + "</span><div>" + item.content + "</div>";
+        div.innerHTML = "<span class='" + (item.role === "user" ? "history-role user" : "history-role") + "'>" + (item.role === "user" ? "你" : "小祕") + "</span><span style='color:#888;font-size:11px;'>" + item.time + "</span><div>" + item.content + "</div>";
         historyDropdown.appendChild(div);
       });
       if (chatHistory.length > 0) latestBubble.textContent = chatHistory[chatHistory.length - 1].content;
@@ -192,17 +177,8 @@
       if (shouldSpeak && role === "assistant") speakText(content);
     }
 
-    historyToggleBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      var isOpen = historyDropdown.classList.toggle("open");
-      historyToggleBtn.textContent = isOpen ? "紀錄 ▴" : "紀錄 ▾";
-    });
-    document.addEventListener("click", function(e) {
-      if (!historyDropdown.contains(e.target) && e.target !== historyToggleBtn) {
-        historyDropdown.classList.remove("open");
-        historyToggleBtn.textContent = "紀錄 ▾";
-      }
-    });
+    historyToggleBtn.addEventListener("click", function(e) { e.stopPropagation(); var isOpen = historyDropdown.classList.toggle("open"); historyToggleBtn.textContent = isOpen ? "紀錄 ▴" : "紀錄 ▾"; });
+    document.addEventListener("click", function(e) { if (!historyDropdown.contains(e.target) && e.target !== historyToggleBtn) { historyDropdown.classList.remove("open"); historyToggleBtn.textContent = "紀錄 ▾"; } });
 
     function syncInputBar() {
       inputModeBtn.textContent = isVoiceInput ? "⌨️" : "🎙️";
@@ -227,19 +203,13 @@
     function beginHold(y) {
       isRecording = true; isCanceled = false; speechBuffer = ""; touchStartY = y;
       holdTalkBtn.classList.add("recording"); holdTalkBtn.classList.remove("canceling");
-      holdTalkBtn.textContent = "鬆開 傳送"; voiceOverlay.style.display = "block";
-      voiceStatusText.textContent = "正在聆聽...";
+      holdTalkBtn.textContent = "鬆開 傳送"; voiceOverlay.style.display = "block"; voiceStatusText.textContent = "正在聆聽...";
       if (recognition) try { recognition.start(); } catch (e) {}
     }
     function moveHold(y) {
       if (!isRecording) return;
-      if (touchStartY - y > 55) {
-        isCanceled = true; holdTalkBtn.classList.add("canceling"); holdTalkBtn.textContent = "鬆開 取消";
-        voiceStatusText.textContent = "已取消發送";
-      } else {
-        isCanceled = false; holdTalkBtn.classList.remove("canceling"); holdTalkBtn.textContent = "鬆開 傳送";
-        voiceStatusText.textContent = speechBuffer || "正在聆聽...";
-      }
+      if (touchStartY - y > 55) { isCanceled = true; holdTalkBtn.classList.add("canceling"); holdTalkBtn.textContent = "鬆開 取消"; voiceStatusText.textContent = "已取消發送"; }
+      else { isCanceled = false; holdTalkBtn.classList.remove("canceling"); holdTalkBtn.textContent = "鬆開 傳送"; voiceStatusText.textContent = speechBuffer || "正在聆聽..."; }
     }
     function endHold() {
       if (!isRecording) return;
@@ -248,68 +218,23 @@
       if (recognition) try { recognition.stop(); } catch (e) {}
       if (!isCanceled) setTimeout(function() { if (speechBuffer.trim()) sendToAI(speechBuffer.trim()); }, 300);
     }
-    holdTalkBtn.addEventListener("touchstart", function(e) { e.preventDefault(); beginHold(e.touches[0].clientY); }, { passive: false });
-    holdTalkBtn.addEventListener("touchmove", function(e) { e.preventDefault(); moveHold(e.touches[0].clientY); }, { passive: false });
+    holdTalkBtn.addEventListener("touchstart", function(e) { e.preventDefault(); beginHold(e.touches.clientY); }, { passive: false });
+    holdTalkBtn.addEventListener("touchmove", function(e) { e.preventDefault(); moveHold(e.touches.clientY); }, { passive: false });
     holdTalkBtn.addEventListener("touchend", function(e) { e.preventDefault(); endHold(); });
     holdTalkBtn.addEventListener("mousedown", function(e) { beginHold(e.clientY); });
     window.addEventListener("mousemove", function(e) { moveHold(e.clientY); });
     window.addEventListener("mouseup", function() { endHold(); });
-
     sendBtn.addEventListener("click", function() { if (textInput.value.trim()) { sendToAI(textInput.value.trim()); textInput.value = ""; } });
     textInput.addEventListener("keydown", function(e) { if (e.key === "Enter") sendBtn.click(); });
+
     async function sendToAI(userText) {
       addMessage("你", userText, false);
-      var isDS = appConfig.provider === "deepseek";
-      var apiKey = isDS ? appConfig.deepseekKey : appConfig.openaiKey;
-      if (!apiKey) { addMessage("小祕", "請先點右上角 ⚙️ 填入 API Key 喔！", true); return; }
+      if (!appConfig.geminiKey) { addMessage("小祕", "請先點右上角 ⚙️ 填入免費的 Google Gemini 金鑰喔！", true); return; }
       latestBubble.textContent = "小祕思考中...";
       var stateCtx = currentSchedule === "work" ? "現在是白天上班時間，你綁著露額頭高馬尾在辦公室。" : "現在是下班居家時間，你放下一頭長髮在家陪伴對方。";
       var sysPrompt = "你是「小祕」，一位真實可愛的鄰家女孩AI秘書兼伴侶。" + stateCtx + "請用自然台灣繁體中文簡短回覆（1到3句話）。";
-      var apiUrl = isDS ? "https://deepseek.com" : "https://openai.com";
-      var recentMsgs = [{ role: "system", content: sysPrompt }].concat(chatHistory.slice(-10).map(function(m) { return { role: m.role, content: m.content }; }));
+      var contents = chatHistory.slice(-10).map(function(m) { return { role: m.role === "user" ? "user" : "model", parts: [{ text: m.content }] }; });
       try {
+        var apiUrl = "https://googleapis.com" + appConfig.geminiKey;
         var res = await fetch(apiUrl, {
           method: "POST",
-          headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: isDS ? "deepseek-chat" : "gpt-4o-mini", messages: recentMsgs })
-        });
-        var data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-        addMessage("小祕", data.choices.message.content.trim(), true);
-      } catch (err) {
-        addMessage("小祕", "連線失敗：" + err.message, false);
-      }
-    }
-
-    settingsBtn.addEventListener("click", function() {
-      document.getElementById("cfg-provider").value = appConfig.provider;
-      document.getElementById("cfg-openai-key").value = appConfig.openaiKey;
-      document.getElementById("cfg-deepseek-key").value = appConfig.deepseekKey;
-      document.getElementById("cfg-tts-mode").value = appConfig.ttsMode;
-      document.getElementById("cfg-work-img").value = appConfig.workCharImg;
-      document.getElementById("cfg-home-img").value = appConfig.homeCharImg;
-      settingsModal.classList.add("show");
-    });
-    document.getElementById("close-settings").addEventListener("click", function() { settingsModal.classList.remove("show"); });
-    document.getElementById("save-settings-btn").addEventListener("click", function() {
-      appConfig.provider = document.getElementById("cfg-provider").value;
-      appConfig.openaiKey = document.getElementById("cfg-openai-key").value.trim();
-      appConfig.deepseekKey = document.getElementById("cfg-deepseek-key").value.trim();
-      appConfig.ttsMode = document.getElementById("cfg-tts-mode").value;
-      appConfig.workCharImg = document.getElementById("cfg-work-img").value.trim() || DEFAULT_CONFIG.workCharImg;
-      appConfig.homeCharImg = document.getElementById("cfg-home-img").value.trim() || DEFAULT_CONFIG.homeCharImg;
-      localStorage.setItem("xiaomi_cfg", JSON.stringify(appConfig));
-      updateVoiceQuickBtnUI(); applySchedule(currentSchedule, false);
-      settingsModal.classList.remove("show");
-      addMessage("小祕", "設定都幫你更新好囉！", true);
-    });
-    document.getElementById("clear-history-btn").addEventListener("click", function() {
-      chatHistory = []; localStorage.removeItem("xiaomi_history"); renderHistory();
-      latestBubble.textContent = "對話紀錄已清空！"; settingsModal.classList.remove("show");
-    });
-
-    syncInputBar(); updateVoiceQuickBtnUI(); renderHistory(); checkTimeSchedule(true);
-    setInterval(function() { checkTimeSchedule(false); }, 60000);
-  </script>
-</body>
-</html>
