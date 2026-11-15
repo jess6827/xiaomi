@@ -46,7 +46,7 @@
   <div id="modal">
     <div class="card">
       <h3 style="margin-bottom:10px;">小祕設定</h3>
-      <label>Gemini 免費金鑰 (AIza...)</label><input type="password" id="kInp" />
+      <label>Gemini 免費金鑰</label><input type="password" id="kInp" />
       <label>聲線風格</label><select id="vSel"><option value="sweet">甜美鄰家女聲</option><option value="gentle">溫柔知性秘書</option><option value="mute">靜音</option></select>
       <button class="btn" id="testV" style="width:100%;margin-bottom:10px;background:#3b82f6;">🔊 試聽聲音</button>
       <label>上班立繪網址</label><input id="wImg" />
@@ -83,17 +83,19 @@
       push("你", q, false);
       if (!cfg.key) return push("小祕", "請先點右上角 ⚙️ 填入免費 Gemini 金鑰喔！", true);
       bbl.textContent = "小祕思考中...";
+      var sys = "你是可愛貼心的專屬AI秘書「小祕」，現在是" + (mode === "work" ? "上班高馬尾時間" : "居家長髮時間") + "。請用繁體中文簡短回覆：" + q;
       try {
-        var r = await fetch("https://googleapis.com" + cfg.key, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: "你是可愛貼心的專屬AI秘書「小祕」，現在是" + (mode === "work" ? "上班高馬尾時間" : "居家長髮時間") + "。請用繁體中文簡短回覆：" + q }] }] })
+        var r = await fetch("https://googleapis.com" + encodeURIComponent(cfg.key), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": cfg.key },
+          body: JSON.stringify({ contents: [{ parts: [{ text: sys }] }] })
         });
         var d = await r.json();
-        if (d.error) return push("小祕", "金鑰錯誤：" + d.error.message, false);
+        if (d.error) return push("小祕", "API錯誤：" + d.error.message, false);
         var cand = d.candidates.at(0);
         var part = cand.content.parts.at(0);
         push("小祕", part.text.trim(), true);
-      } catch (e) { push("小祕", "連線失敗，請檢查網路或金鑰", false); }
+      } catch (e) { push("小祕", "連線異常：" + e.message, false); }
     }
 
     document.getElementById("vBtn").onclick = function() {
@@ -159,8 +161,3 @@
       if (rec) try { rec.stop(); } catch(e) {}
       setTimeout(function() {
         if (buf.trim()) { ask(buf.trim()); }
-        else { bbl.textContent = "沒聽清楚喔，請再按住說話一次（或點左下角 ⌨️ 打字）。"; }
-      }, 400);
-    }
-
-    hBtn.ontouchstart = function(e) { e.preventDefault(); startR(); };
