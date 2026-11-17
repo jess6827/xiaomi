@@ -14,7 +14,6 @@ body{
   flex-direction:column;
   overflow:hidden;
 }
-/* 角色區 */
 .role-area{
   flex:1;
   display:flex;
@@ -23,7 +22,6 @@ body{
   color:#888;
   font-size:18px;
 }
-/* 歷史紀錄按鈕 */
 .history-btn{
   margin:12px 16px;
   padding:14px;
@@ -31,41 +29,53 @@ body{
   border-radius:999px;
   text-align:center;
 }
-/* 訊息區 */
 .msg-wrap{
   flex:0 0 auto;
   padding:0 16px 12px;
   overflow-y:auto;
 }
 .msg-item{
-  max-width:75%;
+  max-width:72%;
   padding:12px 16px;
   border-radius:18px;
   margin-bottom:10px;
   background:rgba(50,50,60,0.6);
+  width:fit-content;
 }
-/* 選單面板（+、表情） */
+.msg-item.self{
+  margin-left:auto;
+  background:rgba(52,199,89,0.55);
+}
 .panel{
-  background:rgba(30,30,36,0.9);
-  padding:18px;
+  background:rgba(24,24,30,0.92);
+  padding:16px;
   display:none;
 }
 .panel.active{display:block}
 .add-menu{
-  display:flex;gap:24px;
+  display:flex;gap:32px;
   justify-content:center;
 }
 .add-item{
   display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-size:14px;
+  color:#fff;
+}
+.add-item .icon{
+  width:48px;height:48px;
+  border-radius:50%;
+  background:rgba(60,60,72,0.65);
+  display:grid;
+  place-items:center;
+  font-size:22px;
 }
 .emoji-row{
-  display:flex;gap:12px;
+  display:flex;gap:14px;
 }
 .emoji{
   font-size:26px;
-  padding:4px;
+  padding:6px;
 }
-/* 底部輸入列 */
 .input-row{
   display:flex;gap:10px;
   align-items:center;
@@ -78,11 +88,12 @@ body{
   color:white;
   border:none;
   font-size:20px;
+  flex:0 0 44px;
 }
 textarea{
-  flex:1;
   min-height:44px;
-  max-height:120px;
+  max-height:110px;
+  width:100%;
   border-radius:24px;
   padding:12px 16px;
   background:rgba(40,40,48,0.55);
@@ -90,8 +101,8 @@ textarea{
   border:none;
   outline:none;
   font-size:16px;
-  /* 重點：換行，不要單行 */
   white-space:pre-wrap;
+  resize:none;
 }
 .send-btn{
   background:#34c759;
@@ -107,15 +118,19 @@ textarea{
   <div class="msg-item">小祕：你好呀，我是小祕。</div>
 </div>
 
-<!-- + 附加選單 -->
 <div class="panel" id="addPanel">
   <div class="add-menu">
-    <div class="add-item" id="pickPhoto">📷<span>相簿</span></div>
-    <div class="add-item" id="takePhoto">📸<span>拍照</span></div>
+    <div class="add-item" id="pickPhoto">
+      <div class="icon">🖼</div>
+      <span>相簿</span>
+    </div>
+    <div class="add-item" id="takePhoto">
+      <div class="icon">📷</div>
+      <span>拍照</span>
+    </div>
   </div>
 </div>
 
-<!-- 表情面板 -->
 <div class="panel" id="emojiPanel">
   <div class="emoji-row">
     <span class="emoji" data-emo="😀">😀</span>
@@ -127,16 +142,14 @@ textarea{
   </div>
 </div>
 
-<!-- 輸入列 -->
 <div class="input-row">
-  <button class="btn" id="voiceBtn">⌨</button>
+  <button class="btn" id="voiceBtn">🎤</button>
   <textarea id="inputTxt" placeholder="輸入訊息..."></textarea>
   <button class="btn send-btn" id="sendBtn">➤</button>
   <button class="btn" id="emojiBtn">😊</button>
   <button class="btn" id="addBtn">+</button>
 </div>
 
-<!-- 隱藏檔案輸入 -->
 <input type="file" id="fileInput" accept="image/*" hidden>
 <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
 
@@ -152,18 +165,17 @@ const pickPhoto = document.getElementById('pickPhoto')
 const takePhoto = document.getElementById('takePhoto')
 const fileInput = document.getElementById('fileInput')
 const camInput = document.getElementById('camInput')
+const voiceBtn = document.getElementById('voiceBtn')
+let voiceMode = false
 
-// 切換 + 選單，關閉表情
 addBtn.onclick = ()=>{
   addPanel.classList.toggle('active')
   emojiPanel.classList.remove('active')
 }
-// 切換表情，關閉+選單
 emojiBtn.onclick = ()=>{
   emojiPanel.classList.toggle('active')
   addPanel.classList.remove('active')
 }
-// 點表情貼上
 document.querySelectorAll('.emoji').forEach(el=>{
   el.onclick = ()=>{
     inputTxt.value += el.dataset.emo
@@ -171,28 +183,40 @@ document.querySelectorAll('.emoji').forEach(el=>{
     inputTxt.focus()
   }
 })
-// 相簿
 pickPhoto.onclick = ()=>{
   fileInput.click()
   addPanel.classList.remove('active')
 }
-// 拍照
 takePhoto.onclick = ()=>{
   camInput.click()
   addPanel.classList.remove('active')
+}
+// 語音按鈕切換
+voiceBtn.onclick = ()=>{
+  voiceMode = !voiceMode
+  if(voiceMode){
+    voiceBtn.textContent = '⌨'
+    inputTxt.disabled = true
+  }else{
+    voiceBtn.textContent = '🎤'
+    inputTxt.disabled = false
+  }
 }
 // 發送
 sendBtn.onclick = ()=>{
   const text = inputTxt.value.trim()
   if(!text) return
-  msgBox.innerHTML += `<div class="msg-item" style="margin-left:auto;background:#34c75988">${text}</div>`
+  const div = document.createElement('div')
+  div.className = 'msg-item self'
+  div.innerText = text
+  msgBox.appendChild(div)
   inputTxt.value = ''
 }
-// 換行：Enter 換行，Shift+Enter 也換行，只有點按鈕才送出
+// Enter 換行，只有點箭頭才送出
 inputTxt.addEventListener('keydown',e=>{
   if(e.key === 'Enter' && !e.shiftKey){
     e.preventDefault()
-    sendBtn.click()
+    inputTxt.value += '\n'
   }
 })
 </script>
