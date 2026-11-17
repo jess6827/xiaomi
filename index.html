@@ -6,13 +6,16 @@
 <title>小祕</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-body{
+html,body{
+  height:100%;
+  overflow:hidden;
   background:#000;
   color:#fff;
-  height:100vh;
+}
+.wrap{
+  height:100%;
   display:flex;
   flex-direction:column;
-  overflow:hidden;
 }
 .role-area{
   flex:1;
@@ -30,9 +33,10 @@ body{
   text-align:center;
 }
 .msg-wrap{
-  flex:0 0 auto;
+  flex-shrink:0;
   padding:0 16px 12px;
   overflow-y:auto;
+  max-height:32vh;
 }
 .msg-item{
   max-width:72%;
@@ -80,6 +84,7 @@ body{
   display:flex;gap:10px;
   align-items:center;
   padding:10px 16px 16px;
+  flex-shrink:0;
 }
 .btn{
   width:44px;height:44px;
@@ -93,7 +98,6 @@ body{
 textarea{
   min-height:44px;
   max-height:110px;
-  width:100%;
   border-radius:24px;
   padding:12px 16px;
   background:rgba(40,40,48,0.55);
@@ -103,6 +107,7 @@ textarea{
   font-size:16px;
   white-space:pre-wrap;
   resize:none;
+  flex:1;
 }
 .send-btn{
   background:#34c759;
@@ -110,44 +115,46 @@ textarea{
 </style>
 </head>
 <body>
-<div class="role-area">【小祕 Live2D 角色區】</div>
+<div class="wrap">
+  <div class="role-area">【小祕 Live2D 角色區】</div>
 
-<div class="history-btn" id="historyBtn">▼ 歷史紀錄</div>
+  <div class="history-btn" id="historyBtn">▼ 歷史紀錄</div>
 
-<div class="msg-wrap" id="msgBox">
-  <div class="msg-item">小祕：你好呀，我是小祕。</div>
-</div>
+  <div class="msg-wrap" id="msgBox">
+    <div class="msg-item">小祕：你好呀，我是小祕。</div>
+  </div>
 
-<div class="panel" id="addPanel">
-  <div class="add-menu">
-    <div class="add-item" id="pickPhoto">
-      <div class="icon">🖼</div>
-      <span>相簿</span>
-    </div>
-    <div class="add-item" id="takePhoto">
-      <div class="icon">📷</div>
-      <span>拍照</span>
+  <div class="panel" id="addPanel">
+    <div class="add-menu">
+      <div class="add-item" id="pickPhoto">
+        <div class="icon">🖼</div>
+        <span>相簿</span>
+      </div>
+      <div class="add-item" id="takePhoto">
+        <div class="icon">📷</div>
+        <span>拍照</span>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="panel" id="emojiPanel">
-  <div class="emoji-row">
-    <span class="emoji" data-emo="😀">😀</span>
-    <span class="emoji" data-emo="🥰">🥰</span>
-    <span class="emoji" data-emo="😆">😆</span>
-    <span class="emoji" data-emo="🤔">🤔</span>
-    <span class="emoji" data-emo="👍">👍</span>
-    <span class="emoji" data-emo="❤️">❤️</span>
+  <div class="panel" id="emojiPanel">
+    <div class="emoji-row">
+      <span class="emoji" data-emo="😀">😀</span>
+      <span class="emoji" data-emo="🥰">🥰</span>
+      <span class="emoji" data-emo="😆">😆</span>
+      <span class="emoji" data-emo="🤔">🤔</span>
+      <span class="emoji" data-emo="👍">👍</span>
+      <span class="emoji" data-emo="❤️">❤️</span>
+    </div>
   </div>
-</div>
 
-<div class="input-row">
-  <button class="btn" id="voiceBtn">🎤</button>
-  <textarea id="inputTxt" placeholder="輸入訊息..."></textarea>
-  <button class="btn send-btn" id="sendBtn">➤</button>
-  <button class="btn" id="emojiBtn">😊</button>
-  <button class="btn" id="addBtn">+</button>
+  <div class="input-row">
+    <button class="btn" id="voiceBtn">🎤</button>
+    <textarea id="inputTxt" placeholder="輸入訊息..."></textarea>
+    <button class="btn send-btn" id="sendBtn">➤</button>
+    <button class="btn" id="emojiBtn">😊</button>
+    <button class="btn" id="addBtn">+</button>
+  </div>
 </div>
 
 <input type="file" id="fileInput" accept="image/*" hidden>
@@ -191,7 +198,6 @@ takePhoto.onclick = ()=>{
   camInput.click()
   addPanel.classList.remove('active')
 }
-// 語音按鈕切換
 voiceBtn.onclick = ()=>{
   voiceMode = !voiceMode
   if(voiceMode){
@@ -202,7 +208,6 @@ voiceBtn.onclick = ()=>{
     inputTxt.disabled = false
   }
 }
-// 發送
 sendBtn.onclick = ()=>{
   const text = inputTxt.value.trim()
   if(!text) return
@@ -210,9 +215,9 @@ sendBtn.onclick = ()=>{
   div.className = 'msg-item self'
   div.innerText = text
   msgBox.appendChild(div)
+  msgBox.scrollTop = msgBox.scrollHeight
   inputTxt.value = ''
 }
-// Enter 換行，只有點箭頭才送出
 inputTxt.addEventListener('keydown',e=>{
   if(e.key === 'Enter' && !e.shiftKey){
     e.preventDefault()
