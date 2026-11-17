@@ -36,7 +36,7 @@ html,body{
   flex-shrink:0;
   padding:0 16px 12px;
   overflow-y:auto;
-  max-height:28vh;
+  max-height:30vh;
 }
 .msg-item{
   max-width:72%;
@@ -83,21 +83,32 @@ html,body{
 .input-row{
   display:flex;gap:10px;
   align-items:center;
-  padding:10px 16px 22px;
+  padding:10px 16px 24px;
   flex-shrink:0;
 }
-.btn{
-  width:44px;height:44px;
+.circle-btn{
+  width:48px;height:48px;
   border-radius:50%;
   background:rgba(50,50,60,0.55);
   color:white;
   border:none;
   font-size:20px;
-  flex:0 0 44px;
+  flex:0 0 48px;
 }
-textarea{
-  min-height:44px;
-  max-height:110px;
+.mic-main{
+  flex:1;
+  height:48px;
+  border-radius:24px;
+  background:rgba(40,40,48,0.55);
+  color:#fff;
+  border:none;
+  outline:none;
+  font-size:16px;
+  text-align:center;
+}
+.text-input{
+  flex:1;
+  height:48px;
   border-radius:24px;
   padding:12px 16px;
   background:rgba(40,40,48,0.55);
@@ -105,9 +116,7 @@ textarea{
   border:none;
   outline:none;
   font-size:16px;
-  white-space:pre-wrap;
-  resize:none;
-  flex:1;
+  display:none;
 }
 .send-btn{
   background:#34c759;
@@ -149,11 +158,12 @@ textarea{
   </div>
 
   <div class="input-row">
-    <button class="btn" id="voiceBtn">🎤</button>
-    <textarea id="inputTxt" placeholder="輸入訊息..."></textarea>
-    <button class="btn send-btn" id="sendBtn">➤</button>
-    <button class="btn" id="emojiBtn">😊</button>
-    <button class="btn" id="addBtn">+</button>
+    <button class="circle-btn" id="leftMicBtn">🎤</button>
+    <button class="mic-main" id="holdTalkBtn">按住說話</button>
+    <input class="text-input" id="textInput" placeholder="輸入訊息...">
+    <button class="circle-btn send-btn" id="sendBtn">➤</button>
+    <button class="circle-btn" id="emojiBtn">😊</button>
+    <button class="circle-btn" id="addBtn">+</button>
   </div>
 </div>
 
@@ -165,18 +175,35 @@ const addPanel = document.getElementById('addPanel')
 const emojiPanel = document.getElementById('emojiPanel')
 const addBtn = document.getElementById('addBtn')
 const emojiBtn = document.getElementById('emojiBtn')
-const inputTxt = document.getElementById('inputTxt')
 const msgBox = document.getElementById('msgBox')
 const sendBtn = document.getElementById('sendBtn')
 const pickPhoto = document.getElementById('pickPhoto')
 const takePhoto = document.getElementById('takePhoto')
 const fileInput = document.getElementById('fileInput')
 const camInput = document.getElementById('camInput')
-const voiceBtn = document.getElementById('voiceBtn')
+const holdTalkBtn = document.getElementById('holdTalkBtn')
+const textInput = document.getElementById('textInput')
 
 let recorder = null
 let audioStream = null
+let isTextMode = false
 
+// 切換文字 / 語音模式
+holdTalkBtn.onclick = ()=>{
+  isTextMode = true
+  holdTalkBtn.style.display = 'none'
+  textInput.style.display = 'block'
+  textInput.focus()
+}
+textInput.addEventListener('blur',()=>{
+  if(textInput.value.trim() === ''){
+    isTextMode = false
+    holdTalkBtn.style.display = 'block'
+    textInput.style.display = 'none'
+  }
+})
+
+// + 選單
 addBtn.onclick = ()=>{
   addPanel.classList.toggle('active')
   emojiPanel.classList.remove('active')
@@ -187,9 +214,9 @@ emojiBtn.onclick = ()=>{
 }
 document.querySelectorAll('.emoji').forEach(el=>{
   el.onclick = ()=>{
-    inputTxt.value += el.dataset.emo
+    textInput.value += el.dataset.emo
     emojiPanel.classList.remove('active')
-    inputTxt.focus()
+    textInput.focus()
   }
 })
 pickPhoto.onclick = ()=>{
@@ -203,17 +230,15 @@ takePhoto.onclick = ()=>{
 
 // 文字發送
 sendBtn.onclick = ()=>{
-  const text = inputTxt.value.trim()
+  const text = textInput.value.trim()
   if(!text) return
   appendMsg(text,true)
-  inputTxt.value = ''
+  textInput.value = ''
+  // 發送完切回按住說話
+  isTextMode = false
+  holdTalkBtn.style.display = 'block'
+  textInput.style.display = 'none'
 }
-inputTxt.addEventListener('keydown',e=>{
-  if(e.key === 'Enter' && !e.shiftKey){
-    e.preventDefault()
-    inputTxt.value += '\n'
-  }
-})
 
 function appendMsg(text,isSelf){
   const div = document.createElement('div')
@@ -223,13 +248,12 @@ function appendMsg(text,isSelf){
   msgBox.scrollTop = msgBox.scrollHeight
 }
 
-// 按住麥克風錄音、放開送出（語音發送）
-voiceBtn.addEventListener('mousedown',startRecord)
-voiceBtn.addEventListener('mouseup',stopRecord)
-voiceBtn.addEventListener('mouseleave',stopRecord)
-// 手機觸控
-voiceBtn.addEventListener('touchstart',(e)=>{e.preventDefault();startRecord()})
-voiceBtn.addEventListener('touchend',(e)=>{e.preventDefault();stopRecord()})
+// 按住說話錄音
+holdTalkBtn.addEventListener('touchstart',e=>{e.preventDefault();startRecord()})
+holdTalkBtn.addEventListener('touchend',e=>{e.preventDefault();stopRecord()})
+holdTalkBtn.addEventListener('mousedown',startRecord)
+holdTalkBtn.addEventListener('mouseup',stopRecord)
+holdTalkBtn.addEventListener('mouseleave',stopRecord)
 
 async function startRecord(){
   try{
@@ -238,12 +262,12 @@ async function startRecord(){
     let chunks = []
     recorder.ondataavailable = e=>chunks.push(e.data)
     recorder.onstop = ()=>{
-      // 這裡先模擬，後續再串轉文字API
       appendMsg('[語音訊息]',true)
       audioStream.getTracks().forEach(t=>t.stop())
     }
     recorder.start()
-    voiceBtn.style.background = '#ff3b30'
+    holdTalkBtn.textContent = '錄音中...'
+    holdTalkBtn.style.background = '#ff3b30'
   }catch(err){
     alert('沒有麥克風權限')
   }
@@ -252,7 +276,8 @@ function stopRecord(){
   if(recorder && recorder.state==='recording'){
     recorder.stop()
   }
-  voiceBtn.style.background = ''
+  holdTalkBtn.textContent = '按住說話'
+  holdTalkBtn.style.background = ''
 }
 </script>
 </body>
