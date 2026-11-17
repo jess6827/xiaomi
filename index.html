@@ -36,7 +36,7 @@ html,body{
   flex-shrink:0;
   padding:0 16px 12px;
   overflow-y:auto;
-  max-height:32vh;
+  max-height:28vh;
 }
 .msg-item{
   max-width:72%;
@@ -83,7 +83,7 @@ html,body{
 .input-row{
   display:flex;gap:10px;
   align-items:center;
-  padding:10px 16px 16px;
+  padding:10px 16px 22px;
   flex-shrink:0;
 }
 .btn{
@@ -173,7 +173,9 @@ const takePhoto = document.getElementById('takePhoto')
 const fileInput = document.getElementById('fileInput')
 const camInput = document.getElementById('camInput')
 const voiceBtn = document.getElementById('voiceBtn')
-let voiceMode = false
+
+let recorder = null
+let audioStream = null
 
 addBtn.onclick = ()=>{
   addPanel.classList.toggle('active')
@@ -198,24 +200,12 @@ takePhoto.onclick = ()=>{
   camInput.click()
   addPanel.classList.remove('active')
 }
-voiceBtn.onclick = ()=>{
-  voiceMode = !voiceMode
-  if(voiceMode){
-    voiceBtn.textContent = '⌨'
-    inputTxt.disabled = true
-  }else{
-    voiceBtn.textContent = '🎤'
-    inputTxt.disabled = false
-  }
-}
+
+// 文字發送
 sendBtn.onclick = ()=>{
   const text = inputTxt.value.trim()
   if(!text) return
-  const div = document.createElement('div')
-  div.className = 'msg-item self'
-  div.innerText = text
-  msgBox.appendChild(div)
-  msgBox.scrollTop = msgBox.scrollHeight
+  appendMsg(text,true)
   inputTxt.value = ''
 }
 inputTxt.addEventListener('keydown',e=>{
@@ -224,6 +214,46 @@ inputTxt.addEventListener('keydown',e=>{
     inputTxt.value += '\n'
   }
 })
+
+function appendMsg(text,isSelf){
+  const div = document.createElement('div')
+  div.className = isSelf ? 'msg-item self' : 'msg-item'
+  div.innerText = text
+  msgBox.appendChild(div)
+  msgBox.scrollTop = msgBox.scrollHeight
+}
+
+// 按住麥克風錄音、放開送出（語音發送）
+voiceBtn.addEventListener('mousedown',startRecord)
+voiceBtn.addEventListener('mouseup',stopRecord)
+voiceBtn.addEventListener('mouseleave',stopRecord)
+// 手機觸控
+voiceBtn.addEventListener('touchstart',(e)=>{e.preventDefault();startRecord()})
+voiceBtn.addEventListener('touchend',(e)=>{e.preventDefault();stopRecord()})
+
+async function startRecord(){
+  try{
+    audioStream = await navigator.mediaDevices.getUserMedia({audio:true})
+    recorder = new MediaRecorder(audioStream)
+    let chunks = []
+    recorder.ondataavailable = e=>chunks.push(e.data)
+    recorder.onstop = ()=>{
+      // 這裡先模擬，後續再串轉文字API
+      appendMsg('[語音訊息]',true)
+      audioStream.getTracks().forEach(t=>t.stop())
+    }
+    recorder.start()
+    voiceBtn.style.background = '#ff3b30'
+  }catch(err){
+    alert('沒有麥克風權限')
+  }
+}
+function stopRecord(){
+  if(recorder && recorder.state==='recording'){
+    recorder.stop()
+  }
+  voiceBtn.style.background = ''
+}
 </script>
 </body>
 </html>
