@@ -1,536 +1,200 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>小祕</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", sans-serif;
-    }
-    body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: #12141b;
-      color: #fff;
-      position: relative;
-    }
-    /* 小祕角色背景 */
-    #charWrap {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1;
-      pointer-events: none;
-    }
-    #charImg {
-      max-width: 70vw;
-      max-height: 60vh;
-      object-fit: contain;
-    }
-    /* 右上角設定按鈕 */
-    #settingBtn {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #fff;
-      font-size: 18px;
-      z-index: 20;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #settingBtn:active {
-      background: rgba(255,255,255,0.22);
-    }
-    /* 折疊歷史紀錄面板，半透明深色 */
-    #historyPanel {
-      position: fixed;
-      top: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 92%;
-      max-width: 480px;
-      z-index: 10;
-      border-radius: 16px;
-      background: rgba(22,26,38,0.65);
-      border: 1px solid rgba(255,255,255,0.14);
-      overflow: hidden;
-    }
-    #historyHeader {
-      padding: 12px 16px;
-      text-align: center;
-      font-size: 15px;
-      cursor: pointer;
-      user-select: none;
-    }
-    #historyBody {
-      max-height: 0;
-      overflow-y: auto;
-      transition: max-height 0.3s ease;
-      padding: 0 12px;
-    }
-    #historyBody.open {
-      max-height: 42vh;
-      padding: 0 12px 14px 12px;
-    }
-    .msgItem {
-      margin: 8px 0;
-      display: flex;
-    }
-    .msgUser {
-      justify-content: flex-end;
-    }
-    .msgBubbleUser {
-      background: #06b95c;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 12px 4px 12px 12px;
-      max-width: 75%;
-      font-size: 14px;
-    }
-    .msgBubbleAi {
-      background: rgba(60,64,78,0.75);
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px 12px 12px 12px;
-      max-width: 75%;
-      font-size: 14px;
-    }
-    /* 底部輸入欄 */
-    #inputBar {
-      position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 94%;
-      max-width: 480px;
-      height: 52px;
-      background: rgba(28, 32, 44, 0.82);
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 26px;
-      display: flex;
-      align-items: center;
-      padding: 0 8px;
-      gap: 6px;
-      z-index: 10;
-    }
-    .inputBtn {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .inputBtn:active {
-      background: rgba(255,255,255,0.18);
-    }
-    #textInput {
-      flex: 1;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 20px;
-      padding: 0 14px;
-      color: #fff;
-      font-size: 15px;
-      outline: none;
-      height: 40px;
-      display: none;
-    }
-    #textInput::placeholder {
-      color: #8a93a6;
-    }
-    #holdVoiceBtn {
-      flex: 1;
-      height: 40px;
-      border-radius: 20px;
-      border: none;
-      background: rgba(255,255,255,0.08);
-      color: #ddd;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    #holdVoiceBtn.active {
-      background: #ff4d6d;
-      color: #fff;
-    }
-    #sendBtn {
-      background: #06b95c;
-      border: none;
-      color: white;
-      padding: 0 14px;
-      height: 40px;
-      border-radius: 20px;
-      font-size: 14px;
-      display: none;
-      cursor: pointer;
-    }
-    /* 設定彈窗 */
-    #settingModal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 30;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modalCard {
-      width: 100%;
-      max-width: 400px;
-      background: #1e2230;
-      border-radius: 16px;
-      padding: 20px;
-    }
-    .modalCard h3 {
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .modalCard label {
-      font-size: 14px;
-      color: #ccc;
-      display: block;
-      margin-top: 10px;
-    }
-    .modalCard input, .modalCard select {
-      width: 100%;
-      margin-top: 4px;
-      padding: 9px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #2a2f42;
-      color: #fff;
-      font-size: 14px;
-    }
-    .modalBtn {
-      width: 100%;
-      margin-top:14px;
-      padding:10px;
-      border-radius:8px;
-      border:none;
-      font-size:15px;
-      cursor:pointer;
-    }
-    .btnTestVoice {
-      background:#3b82f6;
-      color:white;
-    }
-    .btnSave {
-      background:#ff7eb3;
-      color:#111;
-      font-weight:bold;
-    }
-    .btnClose {
-      background:#444;
-      color:white;
-    }
-    .toast {
-      position: fixed;
-      bottom: 90px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.72);
-      color: #fff;
-      padding:10px 20px;
-      border-radius:999px;
-      z-index:25;
-      display:none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小祕</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
+body{
+  background:#000;
+  color:#fff;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+/* 角色區 */
+.role-area{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#888;
+  font-size:18px;
+}
+/* 歷史紀錄按鈕 */
+.history-btn{
+  margin:12px 16px;
+  padding:14px;
+  background:rgba(40,40,48,0.55);
+  border-radius:999px;
+  text-align:center;
+}
+/* 訊息區 */
+.msg-wrap{
+  flex:0 0 auto;
+  padding:0 16px 12px;
+  overflow-y:auto;
+}
+.msg-item{
+  max-width:75%;
+  padding:12px 16px;
+  border-radius:18px;
+  margin-bottom:10px;
+  background:rgba(50,50,60,0.6);
+}
+/* 選單面板（+、表情） */
+.panel{
+  background:rgba(30,30,36,0.9);
+  padding:18px;
+  display:none;
+}
+.panel.active{display:block}
+.add-menu{
+  display:flex;gap:24px;
+  justify-content:center;
+}
+.add-item{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.emoji-row{
+  display:flex;gap:12px;
+}
+.emoji{
+  font-size:26px;
+  padding:4px;
+}
+/* 底部輸入列 */
+.input-row{
+  display:flex;gap:10px;
+  align-items:center;
+  padding:10px 16px 16px;
+}
+.btn{
+  width:44px;height:44px;
+  border-radius:50%;
+  background:rgba(50,50,60,0.55);
+  color:white;
+  border:none;
+  font-size:20px;
+}
+textarea{
+  flex:1;
+  min-height:44px;
+  max-height:120px;
+  border-radius:24px;
+  padding:12px 16px;
+  background:rgba(40,40,48,0.55);
+  color:#fff;
+  border:none;
+  outline:none;
+  font-size:16px;
+  /* 重點：換行，不要單行 */
+  white-space:pre-wrap;
+}
+.send-btn{
+  background:#34c759;
+}
+</style>
 </head>
 <body>
-  <!-- 小祕角色 -->
-  <div id="charWrap">
-    <img id="charImg" src="" alt="小祕">
+<div class="role-area">【小祕 Live2D 角色區】</div>
+
+<div class="history-btn" id="historyBtn">▼ 歷史紀錄</div>
+
+<div class="msg-wrap" id="msgBox">
+  <div class="msg-item">小祕：你好呀，我是小祕。</div>
+</div>
+
+<!-- + 附加選單 -->
+<div class="panel" id="addPanel">
+  <div class="add-menu">
+    <div class="add-item" id="pickPhoto">📷<span>相簿</span></div>
+    <div class="add-item" id="takePhoto">📸<span>拍照</span></div>
   </div>
+</div>
 
-  <!-- 設定按鈕 -->
-  <button id="settingBtn">⚙️</button>
-
-  <!-- 折疊歷史紀錄 -->
-  <div id="historyPanel">
-    <div id="historyHeader">▼ 歷史紀錄</div>
-    <div id="historyBody"></div>
+<!-- 表情面板 -->
+<div class="panel" id="emojiPanel">
+  <div class="emoji-row">
+    <span class="emoji" data-emo="😀">😀</span>
+    <span class="emoji" data-emo="🥰">🥰</span>
+    <span class="emoji" data-emo="😆">😆</span>
+    <span class="emoji" data-emo="🤔">🤔</span>
+    <span class="emoji" data-emo="👍">👍</span>
+    <span class="emoji" data-emo="❤️">❤️</span>
   </div>
+</div>
 
-  <!-- Toast提示 -->
-  <div class="toast" id="toast">設定已儲存！</div>
+<!-- 輸入列 -->
+<div class="input-row">
+  <button class="btn" id="voiceBtn">⌨</button>
+  <textarea id="inputTxt" placeholder="輸入訊息..."></textarea>
+  <button class="btn send-btn" id="sendBtn">➤</button>
+  <button class="btn" id="emojiBtn">😊</button>
+  <button class="btn" id="addBtn">+</button>
+</div>
 
-  <!-- 底部輸入列 -->
-  <div id="inputBar">
-    <button class="inputBtn" id="switchModeBtn">🎙️</button>
-    <input id="textInput" placeholder="輸入文字...">
-    <button id="holdVoiceBtn">按住說話</button>
-    <button class="inputBtn">😊</button>
-    <button class="inputBtn">+</button>
-    <button id="sendBtn">送出</button>
-  </div>
+<!-- 隱藏檔案輸入 -->
+<input type="file" id="fileInput" accept="image/*" hidden>
+<input type="file" id="camInput" accept="image/*" capture="environment" hidden>
 
-  <!-- 設定彈窗 -->
-  <div id="settingModal">
-    <div class="modalCard">
-      <h3>小祕設定</h3>
-      <label>API金鑰 (Gemini)</label>
-      <input type="password" id="apiKey">
-      <label>聲線</label>
-      <select id="voiceSel">
-        <option value="sweet">甜美</option>
-        <option value="gentle">溫柔秘書</option>
-        <option value="mute">靜音</option>
-      </select>
-      <label>上班立繪網址</label>
-      <input id="imgWorkUrl">
-      <label>居家立繪網址</label>
-      <input id="imgHomeUrl">
-      <button class="modalBtn btnTestVoice" id="testVoiceBtn">試聽聲音</button>
-      <button class="modalBtn btnSave" id="saveSettingBtn">儲存設定</button>
-      <button class="modalBtn btnClose" id="closeModalBtn">關閉</button>
-    </div>
-  </div>
+<script>
+const addPanel = document.getElementById('addPanel')
+const emojiPanel = document.getElementById('emojiPanel')
+const addBtn = document.getElementById('addBtn')
+const emojiBtn = document.getElementById('emojiBtn')
+const inputTxt = document.getElementById('inputTxt')
+const msgBox = document.getElementById('msgBox')
+const sendBtn = document.getElementById('sendBtn')
+const pickPhoto = document.getElementById('pickPhoto')
+const takePhoto = document.getElementById('takePhoto')
+const fileInput = document.getElementById('fileInput')
+const camInput = document.getElementById('camInput')
 
-  <script>
-    // 預設設定
-    const defaultConfig = {
-      key: "",
-      voiceType: "sweet",
-      imgWork: "",
-      imgHome: "",
-      mode: "work"
-    }
-    let config = JSON.parse(localStorage.getItem("xiaomiConfig") || JSON.stringify(defaultConfig))
-    let msgList = JSON.parse(localStorage.getItem("xiaomiMsg") || "[]")
-    const MAX_MSG = 40
-    let isVoiceMode = true
-    let recognition = null
-    let holding = false
-    let rawText = ""
-
-    // DOM
-    const charImg = document.getElementById("charImg")
-    const historyHeader = document.getElementById("historyHeader")
-    const historyBody = document.getElementById("historyBody")
-    const settingBtn = document.getElementById("settingBtn")
-    const settingModal = document.getElementById("settingModal")
-    const closeModalBtn = document.getElementById("closeModalBtn")
-    const saveSettingBtn = document.getElementById("saveSettingBtn")
-    const testVoiceBtn = document.getElementById("testVoiceBtn")
-    const apiKeyInput = document.getElementById("apiKey")
-    const voiceSel = document.getElementById("voiceSel")
-    const imgWorkUrl = document.getElementById("imgWorkUrl")
-    const imgHomeUrl = document.getElementById("imgHomeUrl")
-    const switchModeBtn = document.getElementById("switchModeBtn")
-    const textInput = document.getElementById("textInput")
-    const holdVoiceBtn = document.getElementById("holdVoiceBtn")
-    const sendBtn = document.getElementById("sendBtn")
-    const toast = document.getElementById("toast")
-
-    // 初始化語音辨識
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if(SR) {
-      recognition = new SR()
-      recognition.lang = "zh-TW"
-      recognition.continuous = true
-      recognition.interimResults = true
-    }
-
-    function showToast(msg){
-      toast.innerText = msg
-      toast.style.display = "block"
-      setTimeout(()=>toast.style.display="none",1200)
-    }
-
-    // 渲染歷史訊息
-    function renderHistory() {
-      historyBody.innerHTML = ""
-      msgList.forEach(item=>{
-        const div = document.createElement("div")
-        div.className = "msgItem " + (item.who === "user" ? "msgUser":"")
-        const bubble = document.createElement("div")
-        bubble.className = item.who === "user" ? "msgBubbleUser":"msgBubbleAi"
-        bubble.innerText = item.text
-        div.appendChild(bubble)
-        historyBody.appendChild(div)
-      })
-      historyBody.scrollTop = historyBody.scrollHeight
-    }
-
-    // 切換歷史紀錄展開/收起
-    historyHeader.onclick = ()=>{
-      historyBody.classList.toggle("open")
-      historyHeader.innerText = historyBody.classList.contains("open") ? "▲ 收起紀錄" : "▼ 歷史紀錄"
-    }
-
-    // 切換輸入模式
-    function switchMode(){
-      isVoiceMode = !isVoiceMode
-      if(isVoiceMode){
-        switchModeBtn.innerText = "🎙️"
-        textInput.style.display = "none"
-        holdVoiceBtn.style.display = "block"
-        sendBtn.style.display = "none"
-      }else{
-        switchModeBtn.innerText = "⌨️"
-        textInput.style.display = "block"
-        holdVoiceBtn.style.display = "none"
-        updateSendBtn()
-      }
-    }
-    switchModeBtn.onclick = switchMode
-
-    function updateSendBtn(){
-      sendBtn.style.display = textInput.value.trim() ? "block":"none"
-    }
-    textInput.oninput = updateSendBtn
-
-    // 語音校正，同音錯字修正
-    async function correctText(raw){
-      if(!config.key) return raw
-      const prompt = "這是繁體中文語音辨識結果，修正同音錯字、口誤，維持原本語義，只回傳修正後文字，不要附加任何說明。內容：" + raw
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${config.key}`
-      const res = await fetch(url,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-      })
-      const data = await res.json()
-      if(data.error) return raw
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-      return reply || raw
-    }
-
-    // 送出訊息給AI
-    async function sendMessage(text){
-      addMsg("user",text)
-      if(!config.key) {
-        addMsg("ai","請先到設定填入Gemini金鑰")
-        return
-      }
-      const sysPrompt = "你是專屬秘書小祕，使用繁體中文，簡短回覆使用者問題。"
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${config.key}`
-      const res = await fetch(url,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({contents:[{parts:[{text:sysPrompt + "\n使用者：" + text}]}]})
-      })
-      const data = await res.json()
-      if(data.error) {
-        addMsg("ai","API錯誤："+data.error.message)
-        return
-      }
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-      addMsg("ai", aiText || "沒有回覆")
-      speak(aiText)
-    }
-
-    // 新增訊息存入本地
-    function addMsg(who,text){
-      msgList.push({who,text})
-      if(msgList.length>MAX_MSG) msgList.shift()
-      localStorage.setItem("xiaomiMsg",JSON.stringify(msgList))
-      renderHistory()
-    }
-
-    // 語音朗讀
-    function speak(text){
-      if(config.voiceType === "mute") return
-      window.speechSynthesis.cancel()
-      const utter = new SpeechSynthesisUtterance(text)
-      utter.lang = "zh-TW"
-      utter.pitch = config.voiceType === "sweet" ? 1.18 : 1.02
-      utter.rate = config.voiceType === "sweet" ? 1.05 : 0.96
-      window.speechSynthesis.speak(utter)
-    }
-
-    // 按住錄音
-    function startRecord(){
-      if(!recognition) {
-        showToast("此瀏覽器不支援語音辨識")
-        return
-      }
-      holding = true
-      rawText = ""
-      holdVoiceBtn.classList.add("active")
-      holdVoiceBtn.innerText = "鬆開送出"
-      recognition.start()
-      recognition.onresult = (e)=>{
-        let t = ""
-        for(let i=0;i<e.results.length;i++) t += e.results[i][0].transcript
-        rawText = t
-      }
-    }
-    async function stopRecord(){
-      if(!holding) return
-      holding = false
-      holdVoiceBtn.classList.remove("active")
-      holdVoiceBtn.innerText = "按住說話"
-      recognition.stop()
-      if(rawText.trim()){
-        const fixedTxt = await correctText(rawText.trim())
-        sendMessage(fixedTxt)
-      }
-    }
-    holdVoiceBtn.addEventListener("mousedown",startRecord)
-    holdVoiceBtn.addEventListener("mouseup",stopRecord)
-    holdVoiceBtn.addEventListener("mouseleave",stopRecord)
-    holdVoiceBtn.addEventListener("touchstart",(e)=>{e.preventDefault();startRecord()})
-    holdVoiceBtn.addEventListener("touchend",(e)=>{e.preventDefault();stopRecord()})
-
-    // 打字送出
-    sendBtn.onclick = ()=>{
-      const val = textInput.value.trim()
-      if(val) {
-        textInput.value = ""
-        updateSendBtn()
-        sendMessage(val)
-      }
-    }
-    textInput.onkeydown = e=>{if(e.key==="Enter") sendBtn.click()}
-
-    // 設定彈窗
-    settingBtn.onclick = ()=>{
-      apiKeyInput.value = config.key
-      voiceSel.value = config.voiceType
-      imgWorkUrl.value = config.imgWork
-      imgHomeUrl.value = config.imgHome
-      settingModal.style.display = "flex"
-    }
-    closeModalBtn.onclick = ()=> settingModal.style.display = "none"
-    testVoiceBtn.onclick = ()=> speak("你好，我是小祕")
-    saveSettingBtn.onclick = ()=>{
-      config.key = apiKeyInput.value.trim()
-      config.voiceType = voiceSel.value
-      config.imgWork = imgWorkUrl.value.trim()
-      config.imgHome = imgHomeUrl.value.trim()
-      localStorage.setItem("xiaomiConfig",JSON.stringify(config))
-      // 切換立繪
-      charImg.src = config.mode === "work" ? config.imgWork : config.imgHome
-      settingModal.style.display = "none"
-      showToast("設定已儲存！")
-    }
-
-    // 載入初始化
-    function init(){
-      charImg.src = config.mode === "work" ? config.imgWork : config.imgHome
-      renderHistory()
-    }
-    init()
-  </script>
+// 切換 + 選單，關閉表情
+addBtn.onclick = ()=>{
+  addPanel.classList.toggle('active')
+  emojiPanel.classList.remove('active')
+}
+// 切換表情，關閉+選單
+emojiBtn.onclick = ()=>{
+  emojiPanel.classList.toggle('active')
+  addPanel.classList.remove('active')
+}
+// 點表情貼上
+document.querySelectorAll('.emoji').forEach(el=>{
+  el.onclick = ()=>{
+    inputTxt.value += el.dataset.emo
+    emojiPanel.classList.remove('active')
+    inputTxt.focus()
+  }
+})
+// 相簿
+pickPhoto.onclick = ()=>{
+  fileInput.click()
+  addPanel.classList.remove('active')
+}
+// 拍照
+takePhoto.onclick = ()=>{
+  camInput.click()
+  addPanel.classList.remove('active')
+}
+// 發送
+sendBtn.onclick = ()=>{
+  const text = inputTxt.value.trim()
+  if(!text) return
+  msgBox.innerHTML += `<div class="msg-item" style="margin-left:auto;background:#34c75988">${text}</div>`
+  inputTxt.value = ''
+}
+// 換行：Enter 換行，Shift+Enter 也換行，只有點按鈕才送出
+inputTxt.addEventListener('keydown',e=>{
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault()
+    sendBtn.click()
+  }
+})
+</script>
 </body>
 </html>
