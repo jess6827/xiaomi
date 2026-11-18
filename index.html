@@ -2,26 +2,22 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>小祕</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
-body{background:#111;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-/* Live2D 預留區域 */
-.live2d-area{width:100%;height:42vh;background:#181818;position:relative}
+body{background:#111;color:#fff;height:100svh;display:flex;flex-direction:column;overflow:hidden}
+.live2d-area{width:100%;height:32vh;background:#252525;position:relative}
 #live2d-canvas{width:100%;height:100%;display:block}
-/* 聊天區 */
 #chatBox{flex:1;padding:12px;overflow-y:auto;background:#141414}
 .msg{margin:6px 0;line-height:1.5}
 .msg.user{color:#8cf}
 .msg.ai{color:#fdc}
-/* 輸入列 */
-.input-bar{display:flex;gap:6px;padding:10px;background:#222}
+.input-bar{display:flex;gap:6px;padding:10px;padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));background:#222}
 #userInput{flex:1;padding:10px;border:none;border-radius:8px;font-size:16px}
 button{padding:10px 14px;border:none;border-radius:8px;background:#4885ed;color:#fff;font-size:15px}
 .btn-set{background:#444;margin:4px}
-/* 設定面板 半透明 */
-.set-panel{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;padding:20px}
+.set-panel{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;padding:20px;padding-bottom: env(safe-area-inset-bottom,0px)}
 .set-card{background:#222;padding:20px;border-radius:12px;width:100%;max-width:400px}
 .set-card h3{margin-bottom:12px}
 .set-card input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none}
@@ -29,23 +25,15 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#4885ed;color:
 </style>
 </head>
 <body>
-
-<!-- Live2D 角色區（預留，後續接入模型） -->
 <div class="live2d-area">
   <canvas id="live2d-canvas"></canvas>
 </div>
-
-<!-- 聊天訊息 -->
 <div id="chatBox"></div>
-
-<!-- 輸入列 -->
 <div class="input-bar">
   <input type="text" id="userInput" placeholder="輸入訊息...">
   <button onclick="sendMsg()">送出</button>
   <button class="btn-set" onclick="openSetting()">設定</button>
 </div>
-
-<!-- 設定面板 -->
 <div class="set-panel" id="setPanel">
   <div class="set-card">
     <h3>設定</h3>
@@ -57,20 +45,15 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#4885ed;color:
     </div>
   </div>
 </div>
-
 <script>
-// 變數
 let history = [];
 const chatBox = document.getElementById('chatBox');
 const userInput = document.getElementById('userInput');
 const setPanel = document.getElementById('setPanel');
 const apiKeyInput = document.getElementById('apiKeyInput');
-
-// 讀取已存金鑰
 let apiKey = localStorage.getItem('gemini_key') || "";
 apiKeyInput.value = apiKey;
 
-// 設定面板
 function openSetting(){ setPanel.style.display = 'flex'; }
 function closeSetting(){ setPanel.style.display = 'none'; }
 function saveKey(){
@@ -79,8 +62,6 @@ function saveKey(){
   alert("已儲存！");
   closeSetting();
 }
-
-// 渲染訊息
 function renderMsg(isUser, text){
   const div = document.createElement('div');
   div.className = isUser ? "msg user" : "msg ai";
@@ -88,15 +69,11 @@ function renderMsg(isUser, text){
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
-
-// TTS 朗讀
 function speak(txt){
   const utt = new SpeechSynthesisUtterance(txt);
   utt.lang = "zh-TW";
   speechSynthesis.speak(utt);
 }
-
-// 送出訊息
 async function sendMsg(){
   const text = userInput.value.trim();
   if(!text) return;
@@ -107,7 +84,6 @@ async function sendMsg(){
   userInput.value = "";
   renderMsg(true, text);
   history.push({role:"user", parts:[{text:text}]});
-
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   try{
     const res = await fetch(url,{
@@ -127,14 +103,11 @@ async function sendMsg(){
     history.push({role:"model", parts:[{text:reply}]});
     renderMsg(false, reply);
     speak(reply);
-    // 這裡之後可以串：觸發 Live2D 表情動畫
   }catch(err){
     console.error(err);
     renderMsg(false,"連線錯誤，H5環境容易有CORS跨域問題，打包APK就正常。");
   }
 }
-
-// Enter 鍵送出
 userInput.addEventListener('keydown',e=>{
   if(e.key === 'Enter') sendMsg();
 })
