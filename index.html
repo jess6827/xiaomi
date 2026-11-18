@@ -92,6 +92,14 @@ html,body{height:100%;overflow:hidden;}
     background:#f5f7fa;color:#1f2937;
     border:1px solid #eef1f5;font-size:16px;cursor:pointer;
 }
+.text-input-wrap{
+    flex:1;
+    display:none;
+}
+.text-input{
+    width:100%;height:44px;border-radius:14px;padding:0 12px;
+    border:1px solid #eef1f5;font-size:16px;outline:none;
+}
 
 .more-menu{
     position:absolute;left:0;right:0;top:100%;
@@ -115,22 +123,14 @@ html,body{height:100%;overflow:hidden;}
     <div class="chat-container">
         <div class="chat-panel">
             <div class="panel-title">▼ 歷史紀錄</div>
-            <div class="chat-content">
-                <div class="msg me">
-                    <div class="bubble">幫我查一下彰化的天氣</div>
-                </div>
-                <div class="msg ai">
-                    <div class="loading">
-                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                    </div>
-                </div>
-                <div class="msg ai">
-                    <div class="bubble">好的，小秘書正在為您查詢...</div>
-                </div>
+            <div class="chat-content" id="chatBox">
             </div>
         </div>
         <div class="bottom-bar">
             <button class="bar-btn" id="keyBtn">⌨</button>
+            <div class="text-input-wrap" id="textWrap">
+                <input class="text-input" id="textInput" placeholder="輸入訊息">
+            </div>
             <button class="voice-btn" id="voiceBtn">按住 說話</button>
             <button class="bar-btn" id="emojiBtn">☺</button>
             <button class="bar-btn" id="plusBtn">+</button>
@@ -146,12 +146,78 @@ html,body{height:100%;overflow:hidden;}
     </div>
 </div>
 <script>
-const plusBtn = document.getElementById('plusBtn');
-const menu = document.getElementById('menu');
-const voiceBtn = document.getElementById('voiceBtn');
-const emojiBtn = document.getElementById('emojiBtn');
-const keyBtn = document.getElementById('keyBtn');
+// ========= 這裡填你的 Gemini API Key =========
+const GEMINI_API_KEY = "填入你的key";
+const MODEL_NAME = "gemini-1.5-flash";
+// ==============================================
 
+const chatBox = document.getElementById("chatBox");
+const voiceBtn = document.getElementById("voiceBtn");
+const keyBtn = document.getElementById("keyBtn");
+const textWrap = document.getElementById("textWrap");
+const textInput = document.getElementById("textInput");
+const plusBtn = document.getElementById("plusBtn");
+const menu = document.getElementById("menu");
+const emojiBtn = document.getElementById("emojiBtn");
+
+let speechRec;
+let isTextMode = false;
+let chatHistory = [];
+
+// 切換文字 / 語音模式
+keyBtn.onclick = () => {
+    isTextMode = !isTextMode;
+    if(isTextMode){
+        textWrap.style.display = "block";
+        voiceBtn.style.display = "none";
+        textInput.focus();
+    }else{
+        textWrap.style.display = "none";
+        voiceBtn.style.display = "block";
+    }
+}
+
+// 文字輸入送出
+textInput.onkeydown = async (e)=>{
+    if(e.key === "Enter" && textInput.value.trim()){
+        await sendMsg(textInput.value.trim());
+        textInput.value = "";
+    }
+}
+
+// 語音辨識
+if("webkitSpeechRecognition" in window){
+    speechRec = new webkitSpeechRecognition();
+    speechRec.lang = "zh-TW";
+    speechRec.continuous = false;
+    speechRec.interimResults = false;
+
+    speechRec.onresult = async (e)=>{
+        const text = e.results[0][0].transcript;
+        await sendMsg(text);
+    }
+    speechRec.onerror = (err)=>{
+        alert("語音辨識失敗："+err.error);
+        voiceBtn.innerText = "按住 說話";
+    }
+    speechRec.onend = ()=>{
+        voiceBtn.innerText = "按住 說話";
+    }
+}
+
+voiceBtn.ontouchstart = voiceBtn.onmousedown = ()=>{
+    if(!speechRec){
+        alert("瀏覽器不支援語音辨識");
+        return;
+    }
+    voiceBtn.innerText = "放開結束錄音";
+    speechRec.start();
+}
+voiceBtn.ontouchend = voiceBtn.onmouseup = ()=>{
+    speechRec?.stop();
+}
+
+// + 選單
 plusBtn.onclick = (e)=>{
     e.stopPropagation();
     menu.classList.toggle('show');
@@ -159,16 +225,55 @@ plusBtn.onclick = (e)=>{
 document.body.addEventListener('click',e=>{
     if(!plusBtn.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('show');
 })
-
-voiceBtn.onmousedown = voiceBtn.ontouchstart = ()=>{
-    voiceBtn.innerText = '放開結束錄音';
-}
-voiceBtn.onmouseup = voiceBtn.ontouchend = ()=>{
-    voiceBtn.innerText = '按住 說話';
-}
-
 emojiBtn.onclick = ()=>alert('表情面板（待開發）');
-keyBtn.onclick = ()=>alert('切換文字輸入（待開發）');
+
+// 新增訊息到畫面
+function addMsg(text, isMe){
+    const div = document.createElement('div');
+    div.className = "msg " + (isMe ? "me" : "ai");
+    div.innerHTML = `<div class="bubble">${text}</div>`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return div;
+}
+
+// 新增loading
+function addLoading(){
+    const div = document.createElement('div');
+    div.className = "msg ai loading-wrap";
+    div.innerHTML = `<div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return div;
+}
+
+// 送出訊息給Gemini
+async function sendMsg(userText){
+    addMsg(userText, true);
+    const loadingEl = addLoading();
+    chatHistory.push({role:"user", parts:[{text:userText}]});
+    try{
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                contents: chatHistory
+            })
+        })
+        const data = await res.json();
+        loadingEl.remove();
+        if(data.candidates?.[0]?.content?.parts?.[0]?.text){
+            const reply = data.candidates[0].content.parts[0].text;
+            addMsg(reply, false);
+            chatHistory.push({role:"model", parts:[{text:reply}]});
+        }else{
+            addMsg("沒有回覆，或是key錯誤", false);
+        }
+    }catch(err){
+        loadingEl.remove();
+        addMsg("連線錯誤："+err.message, false);
+    }
+}
 </script>
 </body>
 </html>
