@@ -5,280 +5,559 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>小祕</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-html,body{
-  height:100%;
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, sans-serif}
+body{
+  width:100vw;
+  height:100vh;
   overflow:hidden;
-  background:#000;
-  color:#fff;
-}
-.wrap{
-  height:100%;
+  background: url('assets/bg.webp') no-repeat center / cover;
   display:flex;
   flex-direction:column;
+  color:#fff;
 }
+/* 角色區 */
 .role-area{
-  flex:1;
+  height:46vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#888;
-  font-size:18px;
 }
-.history-btn{
-  margin:12px 16px;
-  padding:14px;
-  background:rgba(40,40,48,0.55);
-  border-radius:999px;
-  text-align:center;
+.role-area img{
+  max-height:90%;
+  max-width:90%;
+  object-fit:contain;
 }
-.msg-wrap{
-  flex-shrink:0;
-  padding:0 16px 12px;
-  overflow-y:auto;
-  max-height:30vh;
-}
-.msg-item{
-  max-width:72%;
-  padding:12px 16px;
-  border-radius:18px;
-  margin-bottom:10px;
-  background:rgba(50,50,60,0.6);
-  width:fit-content;
-}
-.msg-item.self{
-  margin-left:auto;
-  background:rgba(52,199,89,0.55);
-}
-.panel{
-  background:rgba(24,24,30,0.92);
-  padding:16px;
+.role-area img.broken{
   display:none;
 }
-.panel.active{display:block}
-.add-menu{
-  display:flex;gap:32px;
-  justify-content:center;
+/* 歷史紀錄面板 半透明 */
+.history-wrap{
+  width:92%;
+  margin:0 auto 12px;
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(8px);
+  border-radius:16px;
+  overflow:hidden;
 }
-.add-item{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  font-size:14px;
-  color:#fff;
-}
-.add-item .icon{
-  width:48px;height:48px;
-  border-radius:50%;
-  background:rgba(60,60,72,0.65);
-  display:grid;
-  place-items:center;
-  font-size:22px;
-}
-.emoji-row{
-  display:flex;gap:14px;
-}
-.emoji{
-  font-size:26px;
-  padding:6px;
-}
-.input-row{
-  display:flex;gap:10px;
-  align-items:center;
-  padding:10px 16px 24px;
-  flex-shrink:0;
-}
-.circle-btn{
-  width:48px;height:48px;
-  border-radius:50%;
-  background:rgba(50,50,60,0.55);
-  color:white;
-  border:none;
-  font-size:20px;
-  flex:0 0 48px;
-}
-.mic-main{
-  flex:1;
-  height:48px;
-  border-radius:24px;
-  background:rgba(40,40,48,0.55);
-  color:#fff;
-  border:none;
-  outline:none;
-  font-size:16px;
+.history-header{
+  padding:10px 16px;
   text-align:center;
+  cursor:pointer;
+  font-size:15px;
+}
+.history-content{
+  max-height:180px;
+  overflow-y:auto;
+  display:none;
+  padding:0 12px 12px;
+}
+.history-content.open{display:block}
+/* 訊息區 */
+.msg-wrap{
+  flex:1;
+  width:92%;
+  margin:0 auto;
+  overflow-y:auto;
+  padding-bottom:10px;
+}
+.msg-item{margin:6px 0;display:flex}
+.msg-user{justify-content:flex-end}
+.msg-role{justify-content:flex-start}
+.msg-bubble{
+  max-width:75%;
+  padding:10px 14px;
+  border-radius:14px;
+  line-height:1.45;
+  font-size:15px;
+}
+.msg-user .msg-bubble{background:#27ae60;color:#fff}
+.msg-role .msg-bubble{background:rgba(255,255,255,0.18);color:#fff}
+.loading-dot{display:flex;gap:4px;padding:10px 14px}
+.dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:0.4}
+.dot:nth-child(1){animation:dot 1s infinite 0s}
+.dot:nth-child(2){animation:dot 1s infinite 0.2s}
+.dot:nth-child(3){animation:dot 1s infinite 0.4s}
+@keyframes dot{0%,100%{opacity:0.4}50%{opacity:1}}
+/* 底部輸入列 */
+.bottom-bar{
+  width:92%;
+  margin:0 auto 22px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.bar-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.14);
+  border:none;
+  color:#fff;
+  font-size:18px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.voice-btn{
+  flex:1;
+  height:42px;
+  border-radius:21px;
+  background:rgba(255,255,255,0.14);
+  border:none;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+}
+.text-input-wrap{
+  flex:1;
+  display:flex;
+  background:rgba(255,255,255,0.14);
+  border-radius:21px;
+  padding:0 12px;
+  align-items:center;
 }
 .text-input{
   flex:1;
-  height:48px;
-  border-radius:24px;
-  padding:12px 16px;
-  background:rgba(40,40,48,0.55);
-  color:#fff;
+  height:42px;
+  background:transparent;
   border:none;
   outline:none;
-  font-size:16px;
+  color:#fff;
+  font-size:15px;
+}
+.send-inner{
+  background:#27ae60;
+  border:none;
+  color:#fff;
+  border-radius:16px;
+  padding:6px 10px;
+  font-size:14px;
+  cursor:pointer;
+  margin-left:6px;
+}
+/* + 彈窗選單 */
+.add-menu{
+  position:absolute;
+  bottom:76px;
+  right:4%;
+  background:rgba(20,20,20,0.92);
+  border-radius:14px;
+  overflow:hidden;
   display:none;
+  z-index:99;
 }
-.send-btn{
-  background:#34c759;
+.add-menu.open{display:block}
+.menu-item{
+  padding:12px 18px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  font-size:15px;
 }
+.menu-item:hover{background:rgba(255,255,255,0.08)}
+.menu-item img{width:24px;height:24px;object-fit:contain}
+/* 設定彈窗 */
+.setting-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  padding:16px;
+}
+.setting-modal.open{display:flex}
+.setting-box{
+  width:100%;
+  max-width:420px;
+  max-height:85vh;
+  overflow-y:auto;
+  background:#1c1c1e;
+  border-radius:18px;
+  padding:18px;
+}
+.setting-title{font-size:17px;font-weight:600;margin-bottom:14px;text-align:center}
+.set-item{margin-bottom:12px}
+.set-item label{display:block;font-size:14px;margin-bottom:4px;color:#ddd}
+.set-item input,.set-item select{
+  width:100%;
+  padding:8px 10px;
+  border-radius:8px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+.set-btn-group{display:flex;gap:8px;margin-top:16px}
+.set-btn{flex:1;padding:10px;border:none;border-radius:10px;font-size:14px;cursor:pointer}
+.btn-save{background:#27ae60;color:#fff}
+.btn-close{background:#444;color:#fff}
+/* 手勢區提示、遮罩 */
+.gesture-left{position:fixed;left:0;top:0;width:8px;height:100vh;z-index:10}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="role-area">【小祕 Live2D 角色區】</div>
+<div class="role-area">
+  <img id="roleImg" src="assets/role_idle.png" alt="小祕">
+</div>
 
-  <div class="history-btn" id="historyBtn">▼ 歷史紀錄</div>
+<div class="history-wrap">
+  <div class="history-header" id="historyToggle">▼ 歷史紀錄</div>
+  <div class="history-content" id="historyBox"></div>
+</div>
 
-  <div class="msg-wrap" id="msgBox">
-    <div class="msg-item">小祕：你好呀，我是小祕。</div>
+<div class="msg-wrap" id="msgBox"></div>
+
+<div class="bottom-bar" id="bottomBar">
+  <button class="bar-btn" id="keyboardBtn">⌨</button>
+  <div id="voiceWrap">
+    <button class="voice-btn" id="voiceBtn">按住說話</button>
   </div>
+  <button class="bar-btn" id="emoBtn">🙂</button>
+  <button class="bar-btn" id="addBtn">+</button>
+</div>
 
-  <div class="panel" id="addPanel">
-    <div class="add-menu">
-      <div class="add-item" id="pickPhoto">
-        <div class="icon">🖼</div>
-        <span>相簿</span>
-      </div>
-      <div class="add-item" id="takePhoto">
-        <div class="icon">📷</div>
-        <span>拍照</span>
-      </div>
-    </div>
+<div class="add-menu" id="addMenu">
+  <div class="menu-item" data-action="camera">
+    <img src="assets/icon_camera.png" alt="相機">
+    <span>相機</span>
   </div>
-
-  <div class="panel" id="emojiPanel">
-    <div class="emoji-row">
-      <span class="emoji" data-emo="😀">😀</span>
-      <span class="emoji" data-emo="🥰">🥰</span>
-      <span class="emoji" data-emo="😆">😆</span>
-      <span class="emoji" data-emo="🤔">🤔</span>
-      <span class="emoji" data-emo="👍">👍</span>
-      <span class="emoji" data-emo="❤️">❤️</span>
-    </div>
+  <div class="menu-item" data-action="gallery">
+    <img src="assets/icon_gallery.png" alt="圖庫">
+    <span>圖庫</span>
   </div>
-
-  <div class="input-row">
-    <button class="circle-btn" id="leftMicBtn">🎤</button>
-    <button class="mic-main" id="holdTalkBtn">按住說話</button>
-    <input class="text-input" id="textInput" placeholder="輸入訊息...">
-    <button class="circle-btn send-btn" id="sendBtn">➤</button>
-    <button class="circle-btn" id="emojiBtn">😊</button>
-    <button class="circle-btn" id="addBtn">+</button>
+  <div class="menu-item" data-action="skin">
+    <img src="assets/icon_skin.png" alt="皮膚">
+    <span>皮膚</span>
+  </div>
+  <div class="menu-item" data-action="setting">
+    <img src="assets/icon_setting.png" alt="設定">
+    <span>設定</span>
   </div>
 </div>
 
-<input type="file" id="fileInput" accept="image/*" hidden>
-<input type="file" id="camInput" accept="image/*" capture="environment" hidden>
+<div class="setting-modal" id="settingModal">
+  <div class="setting-box">
+    <div class="setting-title">設定</div>
+
+    <div class="set-item">
+      <label>對話大腦模型</label>
+      <select id="modelSelect">
+        <option value="gemini">Gemini</option>
+        <option value="openai">OpenAI</option>
+        <option value="deepseek">DeepSeek</option>
+      </select>
+    </div>
+    <div class="set-item">
+      <label>Gemini API Key</label>
+      <input type="text" id="geminiKey" placeholder="填入金鑰">
+    </div>
+    <div class="set-item">
+      <label>OpenAI API Key</label>
+      <input type="text" id="openaiKey" placeholder="填入金鑰">
+    </div>
+    <div class="set-item">
+      <label>DeepSeek API Key</label>
+      <input type="text" id="deepseekKey" placeholder="填入金鑰">
+    </div>
+    <div class="set-item">
+      <label>TTS引擎模式</label>
+      <select id="ttsMode">
+        <option value="1">模式1</option>
+        <option value="2">模式2</option>
+        <option value="3">模式3</option>
+      </select>
+    </div>
+    <div class="set-item">
+      <label>語音方言</label>
+      <select id="voiceLang">
+        <option value="default">預設</option>
+        <option value="cantonese">廣東話</option>
+        <option value="northeast">東北方言</option>
+      </select>
+    </div>
+    <div class="set-item">
+      <label>上班立繪網址</label>
+      <input type="text" id="workImgUrl" placeholder="圖片連結">
+    </div>
+    <div class="set-item">
+      <label>居家立繪網址</label>
+      <input type="text" id="homeImgUrl" placeholder="圖片連結">
+    </div>
+    <div class="set-item">
+      <label>貼圖資料夾前綴</label>
+      <input type="text" id="stickerPrefix" value="assets/">
+    </div>
+    <div class="set-item">
+      <label>喚醒詞開關</label>
+      <select id="wakeSwitch">
+        <option value="on">開啟</option>
+        <option value="off">關閉</option>
+      </select>
+    </div>
+    <div class="set-item">
+      <label>劇情自動播放</label>
+      <select id="autoPlaySwitch">
+        <option value="on">開啟</option>
+        <option value="off">關閉</option>
+      </select>
+    </div>
+    <div class="set-item">
+      <label>劇情刷新時間(秒)</label>
+      <input type="number" id="refreshTime" value="60">
+    </div>
+    <div class="set-item">
+      <label>表情角標開關</label>
+      <select id="badgeSwitch">
+        <option value="on">開啟</option>
+        <option value="off">關閉</option>
+      </select>
+    </div>
+    <div class="set-item">
+      <label>動畫畫面參數</label>
+      <input type="text" id="animParam" placeholder="自訂參數">
+    </div>
+    <div class="set-item">
+      <label>Google登入 / 雲端硬碟授權</label>
+      <button class="bar-btn" style="width:100%;border-radius:8px" id="googleAuthBtn">登入授權</button>
+    </div>
+
+    <div class="set-btn-group">
+      <button class="set-btn btn-save" id="saveSetting">儲存設定</button>
+      <button class="set-btn btn-close" id="closeSetting">關閉</button>
+      <button class="set-btn btn-close" id="clearRecord">清除紀錄</button>
+    </div>
+  </div>
+</div>
 
 <script>
-const addPanel = document.getElementById('addPanel')
-const emojiPanel = document.getElementById('emojiPanel')
-const addBtn = document.getElementById('addBtn')
-const emojiBtn = document.getElementById('emojiBtn')
-const msgBox = document.getElementById('msgBox')
-const sendBtn = document.getElementById('sendBtn')
-const pickPhoto = document.getElementById('pickPhoto')
-const takePhoto = document.getElementById('takePhoto')
-const fileInput = document.getElementById('fileInput')
-const camInput = document.getElementById('camInput')
-const holdTalkBtn = document.getElementById('holdTalkBtn')
-const textInput = document.getElementById('textInput')
+// 12種狀態圖
+const roleStateList = {
+  idle:"assets/role_idle.png",
+  listen:"assets/role_listen.png",
+  think:"assets/role_think.png",
+  happy:"assets/role_happy.png",
+  shy:"assets/role_shy.png",
+  surprise:"assets/role_surprise.png",
+  upset:"assets/role_upset.png",
+  sad:"assets/role_sad.png",
+  cheer:"assets/role_cheer.png",
+  daze:"assets/role_daze.png",
+  smirk:"assets/role_smirk.png",
+  sleepy:"assets/role_sleepy.png"
+};
+let currentState = "idle";
+const roleImg = document.getElementById("roleImg");
+roleImg.onerror = ()=>{roleImg.classList.add("broken")};
 
-let recorder = null
-let audioStream = null
-let isTextMode = false
+// 本地儲存預設
+let appSetting = JSON.parse(localStorage.getItem("xiaomiSetting")) || {
+  model:"gemini",
+  geminiKey:"",openaiKey:"",deepseekKey:"",
+  ttsMode:"1",voiceLang:"default",
+  workImgUrl:"",homeImgUrl:"",stickerPrefix:"assets/",
+  wakeSwitch:"off",autoPlaySwitch:"off",refreshTime:60,
+  badgeSwitch:"off",animParam:""
+};
 
-// 切換文字 / 語音模式
-holdTalkBtn.onclick = ()=>{
-  isTextMode = true
-  holdTalkBtn.style.display = 'none'
-  textInput.style.display = 'block'
-  textInput.focus()
-}
-textInput.addEventListener('blur',()=>{
-  if(textInput.value.trim() === ''){
-    isTextMode = false
-    holdTalkBtn.style.display = 'block'
-    textInput.style.display = 'none'
-  }
-})
+// DOM
+const historyToggle = document.getElementById("historyToggle");
+const historyBox = document.getElementById("historyBox");
+const msgBox = document.getElementById("msgBox");
+const keyboardBtn = document.getElementById("keyboardBtn");
+const voiceWrap = document.getElementById("voiceWrap");
+const voiceBtn = document.getElementById("voiceBtn");
+const emoBtn = document.getElementById("emoBtn");
+const addBtn = document.getElementById("addBtn");
+const addMenu = document.getElementById("addMenu");
+const settingModal = document.getElementById("settingModal");
 
-// + 選單
-addBtn.onclick = ()=>{
-  addPanel.classList.toggle('active')
-  emojiPanel.classList.remove('active')
-}
-emojiBtn.onclick = ()=>{
-  emojiPanel.classList.toggle('active')
-  addPanel.classList.remove('active')
-}
-document.querySelectorAll('.emoji').forEach(el=>{
-  el.onclick = ()=>{
-    textInput.value += el.dataset.emo
-    emojiPanel.classList.remove('active')
-    textInput.focus()
-  }
-})
-pickPhoto.onclick = ()=>{
-  fileInput.click()
-  addPanel.classList.remove('active')
-}
-takePhoto.onclick = ()=>{
-  camInput.click()
-  addPanel.classList.remove('active')
-}
+// 切換歷史紀錄
+historyToggle.onclick = ()=>historyBox.classList.toggle("open");
 
-// 文字發送
-sendBtn.onclick = ()=>{
-  const text = textInput.value.trim()
-  if(!text) return
-  appendMsg(text,true)
-  textInput.value = ''
-  // 發送完切回按住說話
-  isTextMode = false
-  holdTalkBtn.style.display = 'block'
-  textInput.style.display = 'none'
-}
-
-function appendMsg(text,isSelf){
-  const div = document.createElement('div')
-  div.className = isSelf ? 'msg-item self' : 'msg-item'
-  div.innerText = text
-  msgBox.appendChild(div)
-  msgBox.scrollTop = msgBox.scrollHeight
-}
-
-// 按住說話錄音
-holdTalkBtn.addEventListener('touchstart',e=>{e.preventDefault();startRecord()})
-holdTalkBtn.addEventListener('touchend',e=>{e.preventDefault();stopRecord()})
-holdTalkBtn.addEventListener('mousedown',startRecord)
-holdTalkBtn.addEventListener('mouseup',stopRecord)
-holdTalkBtn.addEventListener('mouseleave',stopRecord)
-
-async function startRecord(){
-  try{
-    audioStream = await navigator.mediaDevices.getUserMedia({audio:true})
-    recorder = new MediaRecorder(audioStream)
-    let chunks = []
-    recorder.ondataavailable = e=>chunks.push(e.data)
-    recorder.onstop = ()=>{
-      appendMsg('[語音訊息]',true)
-      audioStream.getTracks().forEach(t=>t.stop())
+// 文字模式
+let textMode = false;
+function renderTextInput(){
+  if(textMode){
+    voiceWrap.innerHTML = `
+    <div class="text-input-wrap">
+      <input class="text-input" id="textInput" placeholder="輸入訊息..." rows="1">
+      <button class="send-inner" id="sendInner">傳送</button>
+    </div>`;
+    const textInput = document.getElementById("textInput");
+    const sendInner = document.getElementById("sendInner");
+    textInput.focus();
+    // 換行，不送出
+    textInput.onkeydown = (e)=>{
+      if(e.key==="Enter" && !e.shiftKey) e.preventDefault();
     }
-    recorder.start()
-    holdTalkBtn.textContent = '錄音中...'
-    holdTalkBtn.style.background = '#ff3b30'
-  }catch(err){
-    alert('沒有麥克風權限')
+    sendInner.onclick = sendTextMsg;
+    textInput.onblur = ()=>{
+      if(textInput.value.trim() === ""){
+        textMode = false;
+        renderVoiceBtn();
+      }
+    }
+  }else{
+    renderVoiceBtn();
   }
 }
-function stopRecord(){
-  if(recorder && recorder.state==='recording'){
-    recorder.stop()
-  }
-  holdTalkBtn.textContent = '按住說話'
-  holdTalkBtn.style.background = ''
+function renderVoiceBtn(){
+  voiceWrap.innerHTML = `<button class="voice-btn" id="voiceBtn">按住說話</button>`;
+  bindVoiceEvent();
 }
+keyboardBtn.onclick = ()=>{
+  textMode = true;
+  renderTextInput();
+}
+
+// 錄音綁定
+let isRecording = false;
+function bindVoiceEvent(){
+  const vBtn = document.getElementById("voiceBtn");
+  vBtn.onmousedown = vBtn.ontouchstart = ()=>{
+    isRecording = true;
+    setRoleState("listen");
+    vBtn.innerText = "放開結束";
+  }
+  vBtn.onmouseup = vBtn.ontouchend = ()=>{
+    if(!isRecording) return;
+    isRecording = false;
+    setRoleState("idle");
+    vBtn.innerText = "按住說話";
+    // 錄音邏輯占位，不會自動跳文字框
+    alert("錄音完成，語音辨識待接入");
+  }
+}
+bindVoiceEvent();
+
+// 傳送文字
+function sendTextMsg(){
+  const input = document.getElementById("textInput");
+  const txt = input.value.trim();
+  if(!txt) return;
+  addMsg("user",txt);
+  input.value = "";
+  setRoleState("think");
+  addLoading();
+  setTimeout(()=>{
+    removeLoading();
+    addMsg("role","收到，我是小祕");
+    setRoleState("idle");
+  },1200)
+}
+
+// 訊息
+function addMsg(type,text){
+  const div = document.createElement("div");
+  div.className = "msg-item "+(type==="user"?"msg-user":"msg-role");
+  div.innerHTML = `<div class="msg-bubble">${text}</div>`;
+  msgBox.appendChild(div);
+  msgBox.scrollTop = msgBox.scrollHeight;
+}
+function addLoading(){
+  const div = document.createElement("div");
+  div.className = "msg-item msg-role";
+  div.innerHTML = `<div class="loading-dot"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  div.id = "loadingItem";
+  msgBox.appendChild(div);
+  msgBox.scrollTop = msgBox.scrollHeight;
+}
+function removeLoading(){
+  const el = document.getElementById("loadingItem");
+  if(el) el.remove();
+}
+
+// 切角色狀態
+function setRoleState(stateKey){
+  if(roleStateList[stateKey]){
+    roleImg.src = roleStateList[stateKey];
+    currentState = stateKey;
+  }
+}
+
+// +選單
+addBtn.onclick = (e)=>{
+  e.stopPropagation();
+  addMenu.classList.toggle("open");
+}
+document.querySelectorAll(".menu-item").forEach(item=>{
+  item.onclick = ()=>{
+    const act = item.dataset.action;
+    addMenu.classList.remove("open");
+    switch(act){
+      case "camera":alert("相機待接入");break;
+      case "gallery":alert("圖庫待接入");break;
+      case "skin":alert("換裝，開啟圖庫選衣服髮飾");break;
+      case "setting":openSetting();break;
+    }
+  }
+})
+document.body.onclick = ()=>addMenu.classList.remove("open");
+
+// 設定
+function openSetting(){
+  document.getElementById("modelSelect").value = appSetting.model;
+  document.getElementById("geminiKey").value = appSetting.geminiKey;
+  document.getElementById("openaiKey").value = appSetting.openaiKey;
+  document.getElementById("deepseekKey").value = appSetting.deepseekKey;
+  document.getElementById("ttsMode").value = appSetting.ttsMode;
+  document.getElementById("voiceLang").value = appSetting.voiceLang;
+  document.getElementById("workImgUrl").value = appSetting.workImgUrl;
+  document.getElementById("homeImgUrl").value = appSetting.homeImgUrl;
+  document.getElementById("stickerPrefix").value = appSetting.stickerPrefix;
+  document.getElementById("wakeSwitch").value = appSetting.wakeSwitch;
+  document.getElementById("autoPlaySwitch").value = appSetting.autoPlaySwitch;
+  document.getElementById("refreshTime").value = appSetting.refreshTime;
+  document.getElementById("badgeSwitch").value = appSetting.badgeSwitch;
+  document.getElementById("animParam").value = appSetting.animParam;
+  settingModal.classList.add("open");
+}
+document.getElementById("closeSetting").onclick = ()=>settingModal.classList.remove("open");
+document.getElementById("saveSetting").onclick = ()=>{
+  appSetting = {
+    model:document.getElementById("modelSelect").value,
+    geminiKey:document.getElementById("geminiKey").value,
+    openaiKey:document.getElementById("openaiKey").value,
+    deepseekKey:document.getElementById("deepseekKey").value,
+    ttsMode:document.getElementById("ttsMode").value,
+    voiceLang:document.getElementById("voiceLang").value,
+    workImgUrl:document.getElementById("workImgUrl").value,
+    homeImgUrl:document.getElementById("homeImgUrl").value,
+    stickerPrefix:document.getElementById("stickerPrefix").value,
+    wakeSwitch:document.getElementById("wakeSwitch").value,
+    autoPlaySwitch:document.getElementById("autoPlaySwitch").value,
+    refreshTime:Number(document.getElementById("refreshTime").value),
+    badgeSwitch:document.getElementById("badgeSwitch").value,
+    animParam:document.getElementById("animParam").value
+  }
+  localStorage.setItem("xiaomiSetting",JSON.stringify(appSetting));
+  alert("設定已儲存");
+  settingModal.classList.remove("open");
+}
+document.getElementById("clearRecord").onclick = ()=>{
+  if(confirm("確認清除全部對話紀錄？")){
+    msgBox.innerHTML = "";
+    historyBox.innerHTML = "";
+    localStorage.removeItem("chatHistory");
+  }
+}
+document.getElementById("googleAuthBtn").onclick = ()=>alert("Google登入&雲端硬碟授權 待接入");
+
+// 手勢監聽
+let startX = 0;
+document.addEventListener("touchstart",e=>startX = e.touches[0].clientX);
+document.addEventListener("touchend",e=>{
+  const endX = e.changedTouches[0].clientX;
+  const diffX = endX - startX;
+  // 右往左滑
+  if(diffX < -60){
+    alert("右往左滑 → 退出小祕頁");
+  }
+})
 </script>
 </body>
 </html>
