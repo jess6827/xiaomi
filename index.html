@@ -7,36 +7,44 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-body{
+html,body{
+  height:100%;
   background:#f2f4f7;
+  overflow:hidden;
   padding:16px;
-  padding-bottom:140px;
+  display:flex;
+  flex-direction:column;
 }
+/* 小祕動畫區，最上方 */
 .anim-area{
   text-align:center;
   color:#b8c2cc;
   font-size:15px;
-  margin-bottom:12px;
+  padding:8px 0;
 }
+/* 4份：對話歷史區 */
 .chat-wrap{
+  flex:4;
   background:#ffffff;
   border-radius:28px;
   padding:20px;
   box-shadow:0 2px 12px rgba(0,0,0,0.06);
   margin-bottom:12px;
+  display:flex;
+  flex-direction:column;
 }
 .chat-header{
   text-align:center;
   font-size:17px;
   color:#666;
-  margin-bottom:18px;
+  margin-bottom:12px;
   cursor:pointer;
 }
 .chat-box{
+  flex:1;
   display:flex;
   flex-direction:column;
   gap:14px;
-  max-height:420px;
   overflow-y:auto;
 }
 .msg{
@@ -76,7 +84,13 @@ body{
   0%,80%,100%{transform:scale(0.7)}
   40%{transform:scale(1.1)}
 }
-/* ＋號展開的選單，預設隱藏 */
+/* 2份：展開選單＋輸入列整塊 */
+.bottom-container{
+  flex:2;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
 .ctrl-bar{
   background:#fff;
   border-radius:28px;
@@ -84,7 +98,6 @@ body{
   display:none;
   justify-content:space-around;
   box-shadow:0 2px 12px rgba(0,0,0,0.06);
-  margin-bottom:12px;
 }
 .ctrl-bar.show{
   display:flex;
@@ -107,8 +120,6 @@ body{
   justify-content:center;
 }
 .input-wrap{
-  position:fixed;
-  left:16px;right:16px;bottom:16px;
   background:#fff;
   border-radius:28px;
   padding:12px 16px;
@@ -167,8 +178,10 @@ body{
 </style>
 </head>
 <body>
+<!-- 最上方：小祕動畫位置 -->
 <div class="anim-area">【小祕半身動畫區】</div>
 
+<!-- 上層 4份：對話歷史 -->
 <div class="chat-wrap">
   <div class="chat-header" id="historyToggle">▼ 歷史紀錄</div>
   <div class="chat-box" id="chat">
@@ -181,45 +194,47 @@ body{
   </div>
 </div>
 
-<!-- 點擊+才會顯示的四個按鈕選單 -->
-<div class="ctrl-bar" id="ctrlBar">
-  <div class="ctrl-item" onclick="openCam()">
-    <div class="ctrl-icon">
-      <i class="fa fa-camera" style="font-size:28px;color:#333"></i>
+<!-- 下層 2份：選單 + 輸入列 -->
+<div class="bottom-container">
+  <div class="ctrl-bar" id="ctrlBar">
+    <div class="ctrl-item" onclick="openCam()">
+      <div class="ctrl-icon">
+        <i class="fa fa-camera" style="font-size:28px;color:#333"></i>
+      </div>
+      <span>相機</span>
     </div>
-    <span>相機</span>
-  </div>
-  <div class="ctrl-item" onclick="openGallery()">
-    <div class="ctrl-icon">
-      <i class="fa fa-picture-o" style="font-size:28px;color:#333"></i>
+    <div class="ctrl-item" onclick="openGallery()">
+      <div class="ctrl-icon">
+        <i class="fa fa-picture-o" style="font-size:28px;color:#333"></i>
+      </div>
+      <span>圖庫</span>
     </div>
-    <span>圖庫</span>
-  </div>
-  <div class="ctrl-item" onclick="changeSkin()">
-    <div class="ctrl-icon">
-      <i class="fa fa-user" style="font-size:28px;color:#333"></i>
+    <div class="ctrl-item" onclick="changeSkin()">
+      <div class="ctrl-icon">
+        <i class="fa fa-user" style="font-size:28px;color:#333"></i>
+      </div>
+      <span>皮膚</span>
     </div>
-    <span>皮膚</span>
-  </div>
-  <div class="ctrl-item" onclick="openSetting()">
-    <div class="ctrl-icon">
-      <i class="fa fa-cog" style="font-size:28px;color:#333"></i>
+    <div class="ctrl-item" onclick="openSetting()">
+      <div class="ctrl-icon">
+        <i class="fa fa-cog" style="font-size:28px;color:#333"></i>
+      </div>
+      <span>設定</span>
     </div>
-    <span>設定</span>
   </div>
-</div>
 
-<div class="input-wrap">
-  <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
-    <i class="fa fa-keyboard-o" style="font-size:26px;color:#333"></i>
-  </button>
-  <div id="voiceHoldBtn">按住 說話</div>
-  <button class="icon-btn" id="emojiBtn" aria-label="表情">
-    <i class="fa fa-smile-o" style="font-size:26px;color:#333"></i>
-  </button>
-  <button class="icon-btn" id="addBtn" aria-label="展開更多">
-    <i class="fa fa-plus" style="font-size:26px;color:#333"></i>
-  </button>
+  <div class="input-wrap">
+    <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
+      <i class="fa fa-keyboard-o" style="font-size:26px;color:#333"></i>
+    </button>
+    <div id="voiceHoldBtn">按住 說話</div>
+    <button class="icon-btn" id="emojiBtn" aria-label="表情">
+      <i class="fa fa-smile-o" style="font-size:26px;color:#333"></i>
+    </button>
+    <button class="icon-btn" id="addBtn" aria-label="展開更多">
+      <i class="fa fa-plus" style="font-size:26px;color:#333"></i>
+    </button>
+  </div>
 </div>
 
 <div class="modal-mask" id="settingModal">
@@ -241,7 +256,6 @@ const ctrlBar = document.getElementById('ctrlBar');
 const addBtn = document.getElementById('addBtn');
 let historyOpen = true;
 
-// 點擊 + 切換展開/收合
 addBtn.onclick = ()=>{
   ctrlBar.classList.toggle('show');
 }
