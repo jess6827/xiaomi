@@ -31,7 +31,7 @@ body{
   flex-shrink:0;
   transition: transform 0.25s ease;
 }
-/* 下方容器：歷史 + 底部 縮小gap解決間距過大 */
+/* 下方容器：歷史 + 底部 */
 .bottom-wrapper{
   flex: 1;
   display:flex;
@@ -106,21 +106,27 @@ body{
   0%,80%,100%{transform:scale(0.7)}
   40%{transform:scale(1.1)}
 }
-/* 底部區域：gap改0，彈窗緊貼輸入框，消除多餘空隙 */
+
+/* 底部區域：設定relative，做彈窗錨點 */
 .bottom-area{
-  display:flex;
-  flex-direction:column-reverse;
-  gap:0px;
+  position:relative;
   flex-shrink:0;
 }
-/* 加號彈窗：壓縮padding，減少彈窗自身高度 */
+
+/* =====重點：彈窗絕對定位，脫離文檔流，不會撐開版面產生間距===== */
 .ctrl-bar{
+  position:absolute;
+  bottom:100%;
+  left:0;
+  right:0;
   background:#fff;
   border-radius:24px;
   padding:8px 8px;
   display:none;
   justify-content:space-around;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
+  margin-bottom:2px; /* 僅僅2px微小貼近輸入框 */
+  z-index:10;
 }
 .ctrl-bar.show{
   display:flex;
@@ -139,7 +145,8 @@ body{
   align-items:center;
   justify-content:center;
 }
-/* 輸入列：壓矮一點、更緊湊 */
+
+/* 輸入列 */
 .input-wrap{
   background:#fff;
   border-radius:24px;
@@ -180,7 +187,7 @@ body{
   align-items:center;
   justify-content:center;
 }
-/* ===== 重點：展開的大歷史面板，懸浮、近滿版、保留圓角邊距 ===== */
+/* 大歷史懸浮面板 */
 .full-history-panel{
   position:fixed;
   inset:16px;
@@ -260,6 +267,7 @@ body{
     </div>
   </div>
   <div class="bottom-area" id="bottomArea">
+    <!-- ctrl‑bar現在絕對定位，不再參與flex文檔流 -->
     <div class="ctrl-bar" id="ctrlBar">
       <div class="ctrl-item" onclick="openCam()">
         <div class="ctrl-icon">
@@ -297,7 +305,6 @@ body{
     </div>
   </div>
 </div>
-<!-- 懸浮大歷史面板，接近滿版、有圓角邊距 -->
 <div class="full-history-panel" id="fullHistoryPanel">
   <div class="full-history-header" id="closeFullHistory">
     <span>▲</span>
@@ -311,7 +318,7 @@ body{
     <input class="modal-input" id="apiKeyInput" type="text">
     <div class="modal-row">
       <button class="modal-btn" onclick="closeModal()">取消</button>
-      <button class="modal-btn" onclick="saveApiKey()">確定</button>
+      <button class="modal-btn" onclick="closeModal()">確定</button>
     </div>
   </div>
 </div>
@@ -330,8 +337,8 @@ const textInput = document.getElementById('textInput');
 const keyboardBtn = document.getElementById('keyboardBtn');
 let menuOpen = false;
 let keyboardOpen = false;
-const offsetVal = -120; // 往上推的距離，可自行調整
-// 重置所有狀態
+const offsetVal = -120;
+
 function resetAllState(){
   ctrlBar.classList.remove('show');
   textInput.style.display = 'none';
@@ -340,10 +347,9 @@ function resetAllState(){
   menuOpen = false;
   keyboardOpen = false;
 }
-// 加號按鈕：彈窗打開，關閉鍵盤
+
 addBtn.onclick = ()=>{
   if(keyboardOpen){
-    // 鍵盤開著，先關鍵盤，再開彈窗
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
@@ -358,7 +364,7 @@ addBtn.onclick = ()=>{
     bottomWrap.style.transform = '';
   }
 }
-// 鍵盤按鈕：切換文字輸入，關閉彈窗
+
 keyboardBtn.onclick = ()=>{
   if(menuOpen){
     ctrlBar.classList.remove('show');
@@ -377,7 +383,7 @@ keyboardBtn.onclick = ()=>{
     bottomWrap.style.transform = '';
   }
 }
-// 輸入框送出文字
+
 textInput.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' && textInput.value.trim() !== ''){
     addMsg(textInput.value.trim(), true);
@@ -385,21 +391,17 @@ textInput.addEventListener('keydown', (e)=>{
     resetAllState();
   }
 })
-// 點三角：打開【懸浮大歷史面板】
+
 historyToggle.onclick = ()=>{
   fullHistoryBox.innerHTML = chatBox.innerHTML;
   fullHistoryPanel.classList.add('show');
 }
-// 大面板上面的三角，關閉
 closeFullHistory.onclick = ()=>{
   fullHistoryPanel.classList.remove('show');
 }
-function openSetting(){
-  settingModal.style.display = 'flex';
-}
-function closeModal(){
-  settingModal.style.display = 'none';
-}
+
+function openSetting(){settingModal.style.display='flex'}
+function closeModal(){settingModal.style.display='none'}
 function saveApiKey(){
   const key = document.getElementById('apiKeyInput').value.trim();
   localStorage.setItem('gemini_key', key);
@@ -408,6 +410,7 @@ function saveApiKey(){
 function openCam(){}
 function openGallery(){}
 function changeSkin(){}
+
 function showLoading(){
   const div = document.createElement('div');
   div.className = 'dot-wrap';
@@ -422,12 +425,12 @@ function addMsg(text, isUser){
   div.innerText = text;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
-  // 同步到大歷史面板
   if(fullHistoryPanel.classList.contains('show')){
     fullHistoryBox.innerHTML = chatBox.innerHTML;
     fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
   }
 }
+
 let isHold = false;
 voiceBtn.addEventListener('touchstart',()=>{
   isHold = true;
