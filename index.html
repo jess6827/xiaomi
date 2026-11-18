@@ -2,425 +2,141 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>小祕</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-html,body{
-  height:100%;
-  background:#f2f4f7;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-}
-body{
-  padding:12px;
-  padding-bottom:12px;
-}
-.anim-area{
-  flex: 0 0 60%;
-  background:#eef2f7;
-  border-radius:24px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#888;
-  margin-bottom:10px;
-  flex-shrink:0;
-}
-.bottom-wrapper{
-  flex: 1;
-  display:flex;
-  flex-direction:column;
-  min-height:0;
-}
-.chat-wrap{
-  flex:1;
-  background:#ffffff;
-  border-radius:24px;
-  padding:14px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  display:flex;
-  flex-direction:column;
-  min-height:70px;
-  margin-bottom:2px;
-}
-.chat-header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:16px;
-  color:#666;
-  margin-bottom:10px;
-  cursor:pointer;
-}
-.chat-box{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  overflow-y:auto;
-}
-.msg{
-  max-width:80%;
-  padding:12px 14px;
-  border-radius:20px;
-  line-height:1.5;
-  font-size:15px;
-}
-.msg.user{
-  background:#22c55e;
-  color:#fff;
-  align-self:flex-end;
-  border-bottom-right-radius:6px;
-}
-.msg.ai{
-  background:#f1f1f1;
-  color:#222;
-  align-self:flex-start;
-  border-bottom-left-radius:6px;
-}
-.dot-wrap{
-  display:flex;
-  gap:5px;
-  padding:10px 14px;
-  align-self:flex-start;
-}
-.dot{
-  width:9px;height:9px;
-  background:#60a5fa;
-  border-radius:50%;
-  animation:bounce 1.4s infinite ease-in-out;
-}
-.dot:nth-child(2){animation-delay:0.2s}
-.dot:nth-child(3){animation-delay:0.4s}
-@keyframes bounce{
-  0%,80%,100%{transform:scale(0.7)}
-  40%{transform:scale(1.1)}
-}
-.bottom-area{
-  display:flex;
-  flex-direction:column;
-  flex-shrink:0;
-}
-/* 彈窗：正常文檔流，不使用absolute，跟隨頁面布局 */
-.ctrl-bar{
-  background:#fff;
-  border-radius:20px;
-  padding:6px 6px;
-  display:none;
-  justify-content:space-around;
-  box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  margin-top:2px;
-}
-.ctrl-bar.show{
-  display:flex;
-}
-.ctrl-item{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-.ctrl-icon{
-  width:42px;height:42px;
-  background:#f3f4f6;
-  border-radius:14px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.input-wrap{
-  background:#fff;
-  border-radius:24px;
-  padding:10px 12px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
-  flex-shrink:0;
-}
-#voiceHoldBtn{
-  flex:1;
-  padding:10px 0;
-  background:#f7f8fa;
-  border-radius:14px;
-  text-align:center;
-  font-size:16px;
-  color:#333;
-  user-select:none;
-}
-#textInput{
-  flex:1;
-  padding:10px 12px;
-  background:#f7f8fa;
-  border-radius:14px;
-  border:none;
-  outline:none;
-  font-size:16px;
-  display:none;
-}
-.icon-btn{
-  width:36px;height:36px;
-  border:none;
-  background:transparent;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.full-history-panel{
-  position:fixed;
-  inset:16px;
-  background:#ffffff;
-  border-radius:24px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.15);
-  z-index:99;
-  display:none;
-  flex-direction:column;
-  padding:14px;
-}
-.full-history-panel.show{
-  display:flex;
-}
-.full-history-header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:16px;
-  color:#666;
-  margin-bottom:10px;
-  cursor:pointer;
-}
-.full-history-box{
-  flex:1;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.modal-mask{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,0.5);
-  display:none;align-items:center;justify-content:center;
-  z-index:100;padding:24px;
-}
-.modal-box{
-  width:100%;
-  background:#fff;
-  border-radius:28px;
-  padding:30px;
-}
-.modal-title{
-  font-size:22px;margin-bottom:22px;
-}
-.modal-input{
-  width:100%;
-  border:none;border-bottom:1px solid #ccc;
-  font-size:17px;padding:10px 0;outline:none;
-  margin-bottom:26px;
-}
-.modal-row{
-  display:flex;justify-content:flex-end;gap:28px;
-}
-.modal-btn{
-  font-size:18px;border:none;background:transparent;
-  color:#2563eb;cursor:pointer;
-}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#111;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* Live2D 預留區域 */
+.live2d-area{width:100%;height:42vh;background:#181818;position:relative}
+#live2d-canvas{width:100%;height:100%;display:block}
+/* 聊天區 */
+#chatBox{flex:1;padding:12px;overflow-y:auto;background:#141414}
+.msg{margin:6px 0;line-height:1.5}
+.msg.user{color:#8cf}
+.msg.ai{color:#fdc}
+/* 輸入列 */
+.input-bar{display:flex;gap:6px;padding:10px;background:#222}
+#userInput{flex:1;padding:10px;border:none;border-radius:8px;font-size:16px}
+button{padding:10px 14px;border:none;border-radius:8px;background:#4885ed;color:#fff;font-size:15px}
+.btn-set{background:#444;margin:4px}
+/* 設定面板 半透明 */
+.set-panel{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;padding:20px}
+.set-card{background:#222;padding:20px;border-radius:12px;width:100%;max-width:400px}
+.set-card h3{margin-bottom:12px}
+.set-card input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none}
+.btn-close{background:#b33}
 </style>
 </head>
 <body>
-<div class="anim-area">【小祕 6份區域】</div>
-<div class="bottom-wrapper" id="bottomWrap">
-  <div class="chat-wrap" id="chatWrap">
-    <div class="chat-header" id="historyToggle">
-      <span id="historyArrow">▼</span>
-      <span>歷史紀錄</span>
-    </div>
-    <div class="chat-box" id="chat">
-      <div class="msg user">幫我查一下彰化的天氣</div>
-      <div class="dot-wrap">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      </div>
-      <div class="msg ai">好的，小祕正在為您查詢...</div>
-      <div class="msg ai">辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？</div>
-    </div>
-  </div>
-  <div class="bottom-area" id="bottomArea">
-    <div class="input-wrap" id="inputWrap">
-      <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
-        <i class="fa fa-keyboard-o" style="font-size:24px;color:#333"></i>
-      </button>
-      <div id="voiceHoldBtn">按住 說話</div>
-      <input type="text" id="textInput" placeholder="輸入文字..." autocomplete="off" />
-      <button class="icon-btn" id="emojiBtn" aria-label="表情">
-        <i class="fa fa-smile-o" style="font-size:24px;color:#333"></i>
-      </button>
-      <button class="icon-btn" id="addBtn" aria-label="展開更多">
-        <i class="fa fa-plus" style="font-size:24px;color:#333"></i>
-      </button>
-    </div>
-    <!--彈窗在輸入框下方，正常文檔流，鍵盤彈出會跟著被往上推-->
-    <div class="ctrl-bar" id="ctrlBar">
-      <div class="ctrl-item" onclick="openCam()">
-        <div class="ctrl-icon">
-          <i class="fa fa-camera" style="font-size:24px;color:#333"></i>
-        </div>
-      </div>
-      <div class="ctrl-item" onclick="openGallery()">
-        <div class="ctrl-icon">
-          <i class="fa fa-picture-o" style="font-size:24px;color:#333"></i>
-        </div>
-      </div>
-      <div class="ctrl-item" onclick="changeSkin()">
-        <div class="ctrl-icon">
-          <i class="fa fa-user" style="font-size:24px;color:#333"></i>
-        </div>
-      </div>
-      <div class="ctrl-item" onclick="openSetting()">
-        <div class="ctrl-icon">
-          <i class="fa fa-cog" style="font-size:24px;color:#333"></i>
-        </div>
-      </div>
-    </div>
-  </div>
+
+<!-- Live2D 角色區（預留，後續接入模型） -->
+<div class="live2d-area">
+  <canvas id="live2d-canvas"></canvas>
 </div>
 
-<div class="full-history-panel" id="fullHistoryPanel">
-  <div class="full-history-header" id="closeFullHistory">
-    <span>▲</span>
-    <span>歷史紀錄</span>
-  </div>
-  <div class="full-history-box" id="fullHistoryBox"></div>
+<!-- 聊天訊息 -->
+<div id="chatBox"></div>
+
+<!-- 輸入列 -->
+<div class="input-bar">
+  <input type="text" id="userInput" placeholder="輸入訊息...">
+  <button onclick="sendMsg()">送出</button>
+  <button class="btn-set" onclick="openSetting()">設定</button>
 </div>
 
-<div class="modal-mask" id="settingModal">
-  <div class="modal-box">
-    <div class="modal-title">請輸入 Gemini API Key：</div>
-    <input class="modal-input" id="apiKeyInput" type="text" autocomplete="off">
-    <div class="modal-row">
-      <button class="modal-btn" onclick="closeModal()">取消</button>
-      <button class="modal-btn" onclick="saveApiKey()">確定</button>
+<!-- 設定面板 -->
+<div class="set-panel" id="setPanel">
+  <div class="set-card">
+    <h3>設定</h3>
+    <label>Gemini API Key</label>
+    <input type="text" id="apiKeyInput" placeholder="貼上你的API Key">
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="saveKey()">儲存</button>
+      <button class="btn-close" onclick="closeSetting()">關閉</button>
     </div>
   </div>
 </div>
 
 <script>
-const chatBox = document.getElementById('chat');
-const fullHistoryBox = document.getElementById('fullHistoryBox');
-const historyToggle = document.getElementById('historyToggle');
-const closeFullHistory = document.getElementById('closeFullHistory');
-const fullHistoryPanel = document.getElementById('fullHistoryPanel');
-const settingModal = document.getElementById('settingModal');
-const ctrlBar = document.getElementById('ctrlBar');
-const addBtn = document.getElementById('addBtn');
-const voiceBtn = document.getElementById('voiceHoldBtn');
-const textInput = document.getElementById('textInput');
-const keyboardBtn = document.getElementById('keyboardBtn');
+// 變數
+let history = [];
+const chatBox = document.getElementById('chatBox');
+const userInput = document.getElementById('userInput');
+const setPanel = document.getElementById('setPanel');
+const apiKeyInput = document.getElementById('apiKeyInput');
 
-let menuOpen = false;
-let keyboardOpen = false;
+// 讀取已存金鑰
+let apiKey = localStorage.getItem('gemini_key') || "";
+apiKeyInput.value = apiKey;
 
-function resetAllState(){
-  ctrlBar.classList.remove('show');
-  textInput.style.display = 'none';
-  voiceBtn.style.display = 'block';
-  menuOpen = false;
-  keyboardOpen = false;
+// 設定面板
+function openSetting(){ setPanel.style.display = 'flex'; }
+function closeSetting(){ setPanel.style.display = 'none'; }
+function saveKey(){
+  apiKey = apiKeyInput.value.trim();
+  localStorage.setItem('gemini_key', apiKey);
+  alert("已儲存！");
+  closeSetting();
 }
 
-addBtn.onclick = ()=>{
-  if(keyboardOpen){
-    textInput.blur();
-    textInput.style.display = 'none';
-    voiceBtn.style.display = 'block';
-    keyboardOpen = false;
-  }
-  menuOpen = !menuOpen;
-  ctrlBar.classList.toggle('show',menuOpen);
-}
-
-keyboardBtn.onclick = ()=>{
-  if(menuOpen){
-    ctrlBar.classList.remove('show');
-    menuOpen = false;
-  }
-  keyboardOpen = !keyboardOpen;
-  if(keyboardOpen){
-    voiceBtn.style.display = 'none';
-    textInput.style.display = 'block';
-    textInput.focus();
-  }else{
-    textInput.blur();
-    textInput.style.display = 'none';
-    voiceBtn.style.display = 'block';
-  }
-}
-
-textInput.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' && textInput.value.trim()){
-    addMsg(textInput.value.trim(),true);
-    textInput.value = '';
-    resetAllState();
-  }
-})
-
-historyToggle.onclick = ()=>{
-  fullHistoryBox.innerHTML = chatBox.innerHTML;
-  fullHistoryPanel.classList.add('show');
-}
-closeFullHistory.onclick = ()=>{
-  fullHistoryPanel.classList.remove('show');
-}
-
-function openSetting(){ settingModal.style.display='flex'; }
-function closeModal(){ settingModal.style.display='none'; }
-function saveApiKey(){
-  const key = document.getElementById('apiKeyInput').value.trim();
-  localStorage.setItem('gemini_key',key);
-  closeModal();
-}
-function openCam(){}
-function openGallery(){}
-function changeSkin(){}
-
-function showLoading(){
+// 渲染訊息
+function renderMsg(isUser, text){
   const div = document.createElement('div');
-  div.className = 'dot-wrap';
-  div.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+  div.className = isUser ? "msg user" : "msg ai";
+  div.innerHTML = isUser ? `<b>你：</b>${text}` : `<b>小祕：</b>${text}`;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
-  return div;
 }
-function addMsg(text,isUser){
-  const div = document.createElement('div');
-  div.className = 'msg '+(isUser?'user':'ai');
-  div.innerText = text;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-  if(fullHistoryPanel.classList.contains('show')){
-    fullHistoryBox.innerHTML = chatBox.innerHTML;
-    fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
+
+// TTS 朗讀
+function speak(txt){
+  const utt = new SpeechSynthesisUtterance(txt);
+  utt.lang = "zh-TW";
+  speechSynthesis.speak(utt);
+}
+
+// 送出訊息
+async function sendMsg(){
+  const text = userInput.value.trim();
+  if(!text) return;
+  if(!apiKey){
+    alert("請先去設定填入 Gemini API Key");
+    return;
+  }
+  userInput.value = "";
+  renderMsg(true, text);
+  history.push({role:"user", parts:[{text:text}]});
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  try{
+    const res = await fetch(url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents: history,
+        systemInstruction: {text:"你是小祕，語氣溫柔，使用自然繁體中文回覆。"}
+      })
+    })
+    const data = await res.json();
+    if(!data.candidates){
+      renderMsg(false,"發生錯誤，可能是金鑰錯誤或是配額用完。");
+      return;
+    }
+    const reply = data.candidates[0].content.parts[0].text;
+    history.push({role:"model", parts:[{text:reply}]});
+    renderMsg(false, reply);
+    speak(reply);
+    // 這裡之後可以串：觸發 Live2D 表情動畫
+  }catch(err){
+    console.error(err);
+    renderMsg(false,"連線錯誤，H5環境容易有CORS跨域問題，打包APK就正常。");
   }
 }
 
-let isHold = false;
-voiceBtn.addEventListener('touchstart',()=>{
-  isHold = true;
-  voiceBtn.innerText = '放開 結束';
-})
-voiceBtn.addEventListener('touchend',()=>{
-  isHold = false;
-  voiceBtn.innerText = '按住 說話';
-  addMsg('我',true);
-  const load = showLoading();
-  setTimeout(()=>{
-    load.remove();
-    addMsg('請先點設定填入 API Key！',false);
-  },1200)
+// Enter 鍵送出
+userInput.addEventListener('keydown',e=>{
+  if(e.key === 'Enter') sendMsg();
 })
 </script>
 </body>
