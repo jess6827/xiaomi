@@ -19,7 +19,7 @@ body{
   padding-bottom:12px;
 }
 .anim-area{
-  flex: 0 0 60%;
+  height: 58vh;
   background:#eef2f7;
   border-radius:24px;
   display:flex;
@@ -33,79 +33,30 @@ body{
   flex: 1;
   display:flex;
   flex-direction:column;
+  gap:0;
   min-height:0;
 }
-.chat-wrap{
-  flex:1;
-  background:#ffffff;
-  border-radius:24px;
-  padding:14px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  display:flex;
-  flex-direction:column;
-  min-height:70px;
-  margin-bottom:2px;
-}
-.chat-header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:16px;
+/* 單行歷史列 */
+.history-row{
+  display:none;
+  background:#fff;
+  border-radius:16px;
+  padding:8px 14px;
+  text-align:center;
   color:#666;
-  margin-bottom:10px;
-  cursor:pointer;
-}
-.chat-box{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  overflow-y:auto;
-}
-.msg{
-  max-width:80%;
-  padding:12px 14px;
-  border-radius:20px;
-  line-height:1.5;
   font-size:15px;
+  cursor:pointer;
+  margin-bottom:4px;
+  box-shadow:0 1px 6px rgba(0,0,0,0.05);
 }
-.msg.user{
-  background:#22c55e;
-  color:#fff;
-  align-self:flex-end;
-  border-bottom-right-radius:6px;
-}
-.msg.ai{
-  background:#f1f1f1;
-  color:#222;
-  align-self:flex-start;
-  border-bottom-left-radius:6px;
-}
-.dot-wrap{
-  display:flex;
-  gap:5px;
-  padding:10px 14px;
-  align-self:flex-start;
-}
-.dot{
-  width:9px;height:9px;
-  background:#60a5fa;
-  border-radius:50%;
-  animation:bounce 1.4s infinite ease-in-out;
-}
-.dot:nth-child(2){animation-delay:0.2s}
-.dot:nth-child(3){animation-delay:0.4s}
-@keyframes bounce{
-  0%,80%,100%{transform:scale(0.7)}
-  40%{transform:scale(1.1)}
+.history-row.show{
+  display:block;
 }
 .bottom-area{
   display:flex;
   flex-direction:column;
   flex-shrink:0;
 }
-/* 彈窗：正常文檔流，不使用absolute，跟隨頁面布局 */
 .ctrl-bar{
   background:#fff;
   border-radius:20px;
@@ -171,6 +122,7 @@ body{
   align-items:center;
   justify-content:center;
 }
+/* 完整歷史彈窗 */
 .full-history-panel{
   position:fixed;
   inset:16px;
@@ -201,6 +153,43 @@ body{
   display:flex;
   flex-direction:column;
   gap:12px;
+}
+.msg{
+  max-width:80%;
+  padding:12px 14px;
+  border-radius:20px;
+  line-height:1.5;
+  font-size:15px;
+}
+.msg.user{
+  background:#22c55e;
+  color:#fff;
+  align-self:flex-end;
+  border-bottom-right-radius:6px;
+}
+.msg.ai{
+  background:#f1f1f1;
+  color:#222;
+  align-self:flex-start;
+  border-bottom-left-radius:6px;
+}
+.dot-wrap{
+  display:flex;
+  gap:5px;
+  padding:10px 14px;
+  align-self:flex-start;
+}
+.dot{
+  width:9px;height:9px;
+  background:#60a5fa;
+  border-radius:50%;
+  animation:bounce 1.4s infinite ease-in-out;
+}
+.dot:nth-child(2){animation-delay:0.2s}
+.dot:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{
+  0%,80%,100%{transform:scale(0.7)}
+  40%{transform:scale(1.1)}
 }
 .modal-mask{
   position:fixed;inset:0;
@@ -235,20 +224,8 @@ body{
 <body>
 <div class="anim-area">【小祕 6份區域】</div>
 <div class="bottom-wrapper" id="bottomWrap">
-  <div class="chat-wrap" id="chatWrap">
-    <div class="chat-header" id="historyToggle">
-      <span id="historyArrow">▼</span>
-      <span>歷史紀錄</span>
-    </div>
-    <div class="chat-box" id="chat">
-      <div class="msg user">幫我查一下彰化的天氣</div>
-      <div class="dot-wrap">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      </div>
-      <div class="msg ai">好的，小祕正在為您查詢...</div>
-      <div class="msg ai">辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？</div>
-    </div>
-  </div>
+  <!-- 單行歷史列 -->
+  <div class="history-row" id="historyRow">▼ 歷史紀錄</div>
   <div class="bottom-area" id="bottomArea">
     <div class="input-wrap" id="inputWrap">
       <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
@@ -263,7 +240,6 @@ body{
         <i class="fa fa-plus" style="font-size:24px;color:#333"></i>
       </button>
     </div>
-    <!--彈窗在輸入框下方，正常文檔流，鍵盤彈出會跟著被往上推-->
     <div class="ctrl-bar" id="ctrlBar">
       <div class="ctrl-item" onclick="openCam()">
         <div class="ctrl-icon">
@@ -294,7 +270,10 @@ body{
     <span>▲</span>
     <span>歷史紀錄</span>
   </div>
-  <div class="full-history-box" id="fullHistoryBox"></div>
+  <div class="full-history-box" id="fullHistoryBox">
+    <div class="msg user">幫我查一下彰化的天氣</div>
+    <div class="msg ai">好的，小祕正在為您查詢...</div>
+  </div>
 </div>
 
 <div class="modal-mask" id="settingModal">
@@ -309,11 +288,10 @@ body{
 </div>
 
 <script>
-const chatBox = document.getElementById('chat');
 const fullHistoryBox = document.getElementById('fullHistoryBox');
-const historyToggle = document.getElementById('historyToggle');
 const closeFullHistory = document.getElementById('closeFullHistory');
 const fullHistoryPanel = document.getElementById('fullHistoryPanel');
+const historyRow = document.getElementById('historyRow');
 const settingModal = document.getElementById('settingModal');
 const ctrlBar = document.getElementById('ctrlBar');
 const addBtn = document.getElementById('addBtn');
@@ -324,12 +302,11 @@ const keyboardBtn = document.getElementById('keyboardBtn');
 let menuOpen = false;
 let keyboardOpen = false;
 
-function resetAllState(){
-  ctrlBar.classList.remove('show');
-  textInput.style.display = 'none';
-  voiceBtn.style.display = 'block';
-  menuOpen = false;
-  keyboardOpen = false;
+historyRow.onclick = ()=>{
+  fullHistoryPanel.classList.add('show');
+}
+closeFullHistory.onclick = ()=>{
+  fullHistoryPanel.classList.remove('show');
 }
 
 addBtn.onclick = ()=>{
@@ -337,6 +314,7 @@ addBtn.onclick = ()=>{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
+    historyRow.classList.remove('show');
     keyboardOpen = false;
   }
   menuOpen = !menuOpen;
@@ -353,10 +331,12 @@ keyboardBtn.onclick = ()=>{
     voiceBtn.style.display = 'none';
     textInput.style.display = 'block';
     textInput.focus();
+    historyRow.classList.add('show'); //文字模式：顯示單行歷史
   }else{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
+    historyRow.classList.remove('show'); //語音模式：隱藏
   }
 }
 
@@ -364,17 +344,8 @@ textInput.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' && textInput.value.trim()){
     addMsg(textInput.value.trim(),true);
     textInput.value = '';
-    resetAllState();
   }
 })
-
-historyToggle.onclick = ()=>{
-  fullHistoryBox.innerHTML = chatBox.innerHTML;
-  fullHistoryPanel.classList.add('show');
-}
-closeFullHistory.onclick = ()=>{
-  fullHistoryPanel.classList.remove('show');
-}
 
 function openSetting(){ settingModal.style.display='flex'; }
 function closeModal(){ settingModal.style.display='none'; }
@@ -391,20 +362,16 @@ function showLoading(){
   const div = document.createElement('div');
   div.className = 'dot-wrap';
   div.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  fullHistoryBox.appendChild(div);
+  fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
   return div;
 }
 function addMsg(text,isUser){
   const div = document.createElement('div');
   div.className = 'msg '+(isUser?'user':'ai');
   div.innerText = text;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-  if(fullHistoryPanel.classList.contains('show')){
-    fullHistoryBox.innerHTML = chatBox.innerHTML;
-    fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
-  }
+  fullHistoryBox.appendChild(div);
+  fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
 }
 
 let isHold = false;
