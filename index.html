@@ -18,7 +18,6 @@ body{
   padding:12px;
   padding-bottom:12px;
 }
-
 /* 小祕區：固定 6 份 */
 .anim-area{
   flex: 0 0 60%;
@@ -32,17 +31,15 @@ body{
   flex-shrink:0;
   transition: transform 0.25s ease;
 }
-
-/* 下方容器：歷史 + 底部 */
+/* 下方容器：歷史 + 底部 縮小gap解決間距過大 */
 .bottom-wrapper{
   flex: 1;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:4px;
   min-height:0;
   transition: transform 0.25s ease;
 }
-
 /* 一般狀態歷史對話框 */
 .chat-wrap{
   flex:1;
@@ -54,7 +51,6 @@ body{
   flex-direction:column;
   min-height:70px;
 }
-
 /* 歷史紀錄標題列：只保留一個三角形 */
 .chat-header{
   display:flex;
@@ -66,7 +62,6 @@ body{
   margin-bottom:10px;
   cursor:pointer;
 }
-
 .chat-box{
   flex:1;
   display:flex;
@@ -74,7 +69,6 @@ body{
   gap:12px;
   overflow-y:auto;
 }
-
 .msg{
   max-width:80%;
   padding:12px 14px;
@@ -94,7 +88,6 @@ body{
   align-self:flex-start;
   border-bottom-left-radius:6px;
 }
-
 .dot-wrap{
   display:flex;
   gap:5px;
@@ -113,20 +106,18 @@ body{
   0%,80%,100%{transform:scale(0.7)}
   40%{transform:scale(1.1)}
 }
-
-/* 底部區域：輸入列永遠貼底，彈窗從輸入列上方往上彈 */
+/* 底部區域：gap改0，彈窗緊貼輸入框，消除多餘空隙 */
 .bottom-area{
   display:flex;
   flex-direction:column-reverse;
-  gap:10px;
+  gap:0px;
   flex-shrink:0;
 }
-
-/* 加號彈窗：只放圖標，降低高度 */
+/* 加號彈窗：壓縮padding，減少彈窗自身高度 */
 .ctrl-bar{
   background:#fff;
   border-radius:24px;
-  padding:12px 10px;
+  padding:8px 8px;
   display:none;
   justify-content:space-around;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
@@ -134,14 +125,12 @@ body{
 .ctrl-bar.show{
   display:flex;
 }
-
 .ctrl-item{
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
 }
-
 .ctrl-icon{
   width:46px;height:46px;
   background:#f3f4f6;
@@ -150,7 +139,6 @@ body{
   align-items:center;
   justify-content:center;
 }
-
 /* 輸入列：壓矮一點、更緊湊 */
 .input-wrap{
   background:#fff;
@@ -162,7 +150,6 @@ body{
   box-shadow:0 2px 10px rgba(0,0,0,0.08);
   flex-shrink:0;
 }
-
 #voiceHoldBtn{
   flex:1;
   padding:10px 0;
@@ -184,7 +171,6 @@ body{
   font-size:16px;
   display:none;
 }
-
 .icon-btn{
   width:36px;height:36px;
   border:none;
@@ -194,7 +180,6 @@ body{
   align-items:center;
   justify-content:center;
 }
-
 /* ===== 重點：展開的大歷史面板，懸浮、近滿版、保留圓角邊距 ===== */
 .full-history-panel{
   position:fixed;
@@ -227,7 +212,6 @@ body{
   flex-direction:column;
   gap:12px;
 }
-
 .modal-mask{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.5);
@@ -259,9 +243,7 @@ body{
 </style>
 </head>
 <body>
-
 <div class="anim-area">【小祕 6份區域】</div>
-
 <div class="bottom-wrapper" id="bottomWrap">
   <div class="chat-wrap" id="chatWrap">
     <div class="chat-header" id="historyToggle">
@@ -277,7 +259,6 @@ body{
       <div class="msg ai">辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？</div>
     </div>
   </div>
-
   <div class="bottom-area" id="bottomArea">
     <div class="ctrl-bar" id="ctrlBar">
       <div class="ctrl-item" onclick="openCam()">
@@ -301,7 +282,6 @@ body{
         </div>
       </div>
     </div>
-
     <div class="input-wrap">
       <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
         <i class="fa fa-keyboard-o" style="font-size:24px;color:#333"></i>
@@ -317,7 +297,6 @@ body{
     </div>
   </div>
 </div>
-
 <!-- 懸浮大歷史面板，接近滿版、有圓角邊距 -->
 <div class="full-history-panel" id="fullHistoryPanel">
   <div class="full-history-header" id="closeFullHistory">
@@ -326,7 +305,6 @@ body{
   </div>
   <div class="full-history-box" id="fullHistoryBox"></div>
 </div>
-
 <div class="modal-mask" id="settingModal">
   <div class="modal-box">
     <div class="modal-title">請輸入 Gemini API Key：</div>
@@ -337,7 +315,6 @@ body{
     </div>
   </div>
 </div>
-
 <script>
 const chatBox = document.getElementById('chat');
 const fullHistoryBox = document.getElementById('fullHistoryBox');
@@ -351,11 +328,9 @@ const bottomWrap = document.getElementById('bottomWrap');
 const voiceBtn = document.getElementById('voiceHoldBtn');
 const textInput = document.getElementById('textInput');
 const keyboardBtn = document.getElementById('keyboardBtn');
-
 let menuOpen = false;
 let keyboardOpen = false;
 const offsetVal = -120; // 往上推的距離，可自行調整
-
 // 重置所有狀態
 function resetAllState(){
   ctrlBar.classList.remove('show');
@@ -365,7 +340,6 @@ function resetAllState(){
   menuOpen = false;
   keyboardOpen = false;
 }
-
 // 加號按鈕：彈窗打開，關閉鍵盤
 addBtn.onclick = ()=>{
   if(keyboardOpen){
@@ -384,7 +358,6 @@ addBtn.onclick = ()=>{
     bottomWrap.style.transform = '';
   }
 }
-
 // 鍵盤按鈕：切換文字輸入，關閉彈窗
 keyboardBtn.onclick = ()=>{
   if(menuOpen){
@@ -404,7 +377,6 @@ keyboardBtn.onclick = ()=>{
     bottomWrap.style.transform = '';
   }
 }
-
 // 輸入框送出文字
 textInput.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' && textInput.value.trim() !== ''){
@@ -413,7 +385,6 @@ textInput.addEventListener('keydown', (e)=>{
     resetAllState();
   }
 })
-
 // 點三角：打開【懸浮大歷史面板】
 historyToggle.onclick = ()=>{
   fullHistoryBox.innerHTML = chatBox.innerHTML;
@@ -423,7 +394,6 @@ historyToggle.onclick = ()=>{
 closeFullHistory.onclick = ()=>{
   fullHistoryPanel.classList.remove('show');
 }
-
 function openSetting(){
   settingModal.style.display = 'flex';
 }
@@ -438,7 +408,6 @@ function saveApiKey(){
 function openCam(){}
 function openGallery(){}
 function changeSkin(){}
-
 function showLoading(){
   const div = document.createElement('div');
   div.className = 'dot-wrap';
@@ -459,7 +428,6 @@ function addMsg(text, isUser){
     fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
   }
 }
-
 let isHold = false;
 voiceBtn.addEventListener('touchstart',()=>{
   isHold = true;
@@ -476,6 +444,5 @@ voiceBtn.addEventListener('touchend',()=>{
   },1200)
 })
 </script>
-
 </body>
 </html>
