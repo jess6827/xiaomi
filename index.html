@@ -18,7 +18,6 @@ body{
   padding:12px;
   padding-bottom:12px;
 }
-/* 小祕區：固定 6 份 */
 .anim-area{
   flex: 0 0 60%;
   background:#eef2f7;
@@ -29,18 +28,16 @@ body{
   color:#888;
   margin-bottom:10px;
   flex-shrink:0;
-  transition: transform 0.25s ease;
 }
-/* 下方容器：歷史 + 底部 */
+/* 歷史與底部容器：gap=0，消除歷史框與輸入框之間空隙 */
 .bottom-wrapper{
   flex: 1;
   display:flex;
   flex-direction:column;
-  gap:4px;
+  gap:0px;
   min-height:0;
   transition: transform 0.25s ease;
 }
-/* 一般狀態歷史對話框 */
 .chat-wrap{
   flex:1;
   background:#ffffff;
@@ -51,7 +48,6 @@ body{
   flex-direction:column;
   min-height:70px;
 }
-/* 歷史紀錄標題列：只保留一個三角形 */
 .chat-header{
   display:flex;
   align-items:center;
@@ -106,17 +102,15 @@ body{
   0%,80%,100%{transform:scale(0.7)}
   40%{transform:scale(1.1)}
 }
-
-/* 底部區域：設定relative，做彈窗錨點 */
+/* 輸入區做絕對定位錨點 */
 .bottom-area{
   position:relative;
   flex-shrink:0;
 }
-
-/* =====重點：彈窗絕對定位，脫離文檔流，不會撐開版面產生間距===== */
+/* 彈窗：輸入框【下方】，脫離文檔流，不會撐開版面 */
 .ctrl-bar{
   position:absolute;
-  bottom:100%;
+  top:100%;
   left:0;
   right:0;
   background:#fff;
@@ -125,7 +119,7 @@ body{
   display:none;
   justify-content:space-around;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  margin-bottom:2px; /* 僅僅2px微小貼近輸入框 */
+  margin-top:2px;
   z-index:10;
 }
 .ctrl-bar.show{
@@ -145,8 +139,6 @@ body{
   align-items:center;
   justify-content:center;
 }
-
-/* 輸入列 */
 .input-wrap{
   background:#fff;
   border-radius:24px;
@@ -167,7 +159,6 @@ body{
   color:#333;
   user-select:none;
 }
-/* 文字輸入框 */
 #textInput{
   flex:1;
   padding:10px 12px;
@@ -187,7 +178,7 @@ body{
   align-items:center;
   justify-content:center;
 }
-/* 大歷史懸浮面板 */
+/* 全螢幕歷史懸浮面板 */
 .full-history-panel{
   position:fixed;
   inset:16px;
@@ -267,7 +258,6 @@ body{
     </div>
   </div>
   <div class="bottom-area" id="bottomArea">
-    <!-- ctrl‑bar現在絕對定位，不再參與flex文檔流 -->
     <div class="ctrl-bar" id="ctrlBar">
       <div class="ctrl-item" onclick="openCam()">
         <div class="ctrl-icon">
@@ -305,6 +295,7 @@ body{
     </div>
   </div>
 </div>
+
 <div class="full-history-panel" id="fullHistoryPanel">
   <div class="full-history-header" id="closeFullHistory">
     <span>▲</span>
@@ -312,16 +303,18 @@ body{
   </div>
   <div class="full-history-box" id="fullHistoryBox"></div>
 </div>
+
 <div class="modal-mask" id="settingModal">
   <div class="modal-box">
     <div class="modal-title">請輸入 Gemini API Key：</div>
     <input class="modal-input" id="apiKeyInput" type="text">
     <div class="modal-row">
       <button class="modal-btn" onclick="closeModal()">取消</button>
-      <button class="modal-btn" onclick="closeModal()">確定</button>
+      <button class="modal-btn" onclick="saveApiKey()">確定</button>
     </div>
   </div>
 </div>
+
 <script>
 const chatBox = document.getElementById('chat');
 const fullHistoryBox = document.getElementById('fullHistoryBox');
@@ -335,9 +328,10 @@ const bottomWrap = document.getElementById('bottomWrap');
 const voiceBtn = document.getElementById('voiceHoldBtn');
 const textInput = document.getElementById('textInput');
 const keyboardBtn = document.getElementById('keyboardBtn');
+
 let menuOpen = false;
 let keyboardOpen = false;
-const offsetVal = -120;
+const POPUP_SHIFT = -120;
 
 function resetAllState(){
   ctrlBar.classList.remove('show');
@@ -348,6 +342,7 @@ function resetAllState(){
   keyboardOpen = false;
 }
 
+// 加號：僅彈窗開啟才上移
 addBtn.onclick = ()=>{
   if(keyboardOpen){
     textInput.blur();
@@ -358,29 +353,29 @@ addBtn.onclick = ()=>{
   menuOpen = !menuOpen;
   if(menuOpen){
     ctrlBar.classList.add('show');
-    bottomWrap.style.transform = `translateY(${offsetVal}px)`;
+    bottomWrap.style.transform = `translateY(${POPUP_SHIFT}px)`;
   }else{
     ctrlBar.classList.remove('show');
     bottomWrap.style.transform = '';
   }
 }
 
+// 鍵盤：切換文字輸入，**不做上移**
 keyboardBtn.onclick = ()=>{
   if(menuOpen){
     ctrlBar.classList.remove('show');
     menuOpen = false;
+    bottomWrap.style.transform = '';
   }
   keyboardOpen = !keyboardOpen;
   if(keyboardOpen){
     voiceBtn.style.display = 'none';
     textInput.style.display = 'block';
     textInput.focus();
-    bottomWrap.style.transform = `translateY(${offsetVal}px)`;
   }else{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
-    bottomWrap.style.transform = '';
   }
 }
 
@@ -400,8 +395,8 @@ closeFullHistory.onclick = ()=>{
   fullHistoryPanel.classList.remove('show');
 }
 
-function openSetting(){settingModal.style.display='flex'}
-function closeModal(){settingModal.style.display='none'}
+function openSetting(){ settingModal.style.display = 'flex'; }
+function closeModal(){ settingModal.style.display = 'none'; }
 function saveApiKey(){
   const key = document.getElementById('apiKeyInput').value.trim();
   localStorage.setItem('gemini_key', key);
