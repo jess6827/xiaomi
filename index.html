@@ -84,8 +84,8 @@ async function sendMsg(){
   userInput.value = "";
   renderMsg(true, text);
   history.push({role:"user", parts:[{text:text}]});
-  // 換成 gemini-2.0-flash
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
   try{
     const res = await fetch(url,{
       method:"POST",
@@ -97,7 +97,7 @@ async function sendMsg(){
     })
     const data = await res.json();
     if(!data.candidates){
-      renderMsg(false,"發生錯誤，金鑰有誤、配額用完，或是GitHub Pages跨域限制。");
+      renderMsg(false,"金鑰錯誤、配額用完，或是代理失效。");
       return;
     }
     const reply = data.candidates[0].content.parts[0].text;
@@ -106,7 +106,7 @@ async function sendMsg(){
     speak(reply);
   }catch(err){
     console.error(err);
-    renderMsg(false,"連線錯誤，GitHub Pages網頁版容易遇到CORS跨域攔截，打包APK就不會有這個問題。");
+    renderMsg(false,"代理連線失敗，免費代理很容易掛掉，這個方式只適合臨時測試。");
   }
 }
 userInput.addEventListener('keydown',e=>{
