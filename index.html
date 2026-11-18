@@ -7,22 +7,39 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, sans-serif;}
 html,body{height:100%;overflow:hidden;}
-.wrap{width:100%;height:100%;position:relative;}
-/* 背景層（後續放小祕+風景圖） */
-.bg-layer{position:absolute;inset:0;background:url('') center/cover no-repeat;z-index:1;}
+.wrap{width:100%;height:100%;position:relative;display:flex;flex-direction:column;}
 
-/* 對話面板 */
+/* 上層：小祕半身區 flex:4 */
+.character-area{
+    flex:4;
+    position:relative;
+    z-index:1;
+}
+/* 這裡之後放小祕半身圖/動畫 */
+.character-area .placeholder{
+    width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    color:#888;font-size:16px;
+}
+
+/* 下層整套：對話面板+輸入列 flex:2 */
+.chat-container{
+    flex:2;
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    padding:0 5%;
+    gap:12px;
+}
 .chat-panel{
-    position:absolute;left:5%;right:5%;top:42%;bottom:16%;
+    flex:1;
     background:rgba(20,22,30,0.55);
     border-radius:22px;border:1px solid rgba(255,255,255,0.18);
-    z-index:2;
     display:flex;flex-direction:column;
 }
 .panel-title{padding:14px;text-align:center;color:#fff;font-size:18px;}
-/* ✅ 4:2 對話區:面板內留白 */
-.chat-content{flex:4;padding:12px;overflow-y:auto;}
-.chat-space{flex:2;}
+.chat-content{flex:1;padding:12px;overflow-y:auto;}
 
 .msg{margin:8px 0;max-width:72%;}
 .msg.me{margin-left:auto;}
@@ -35,19 +52,25 @@ html,body{height:100%;overflow:hidden;}
 .dot:nth-child(3){animation-delay:0.4s}
 @keyframes dot{0%,40%{opacity:0.3}20%{opacity:1}}
 
-/* 底部輸入列 */
+/* 底部輸入列，外圈小、圖標放大，跟豆包App一樣 */
 .bottom-bar{
-    position:absolute;left:0;right:0;bottom:0;
-    height:14%;min-height:72px;
+    position:relative;
+    min-height:64px;
+    max-height:82px;
     background:rgba(15,16,22,0.6);
+    border-radius:16px 16px 0 0;
     display:flex;align-items:center;gap:12px;padding:0 16px;
-    z-index:2;
 }
-/* ✅ 放大按鈕，參考微信比例 */
-.bar-btn{width:48px;height:48px;border-radius:50%;border:1px solid #fff;color:#fff;display:grid;place-items:center;font-size:24px;background:transparent;cursor:pointer;}
-.voice-btn{flex:1;height:48px;border-radius:12px;background:rgba(255,255,255,0.12);color:#fff;border:none;font-size:17px;cursor:pointer;}
+.bar-btn{
+    width:42px;height:42px;
+    border-radius:50%;
+    border:1px solid #fff;color:#fff;
+    display:grid;place-items:center;
+    font-size:28px;
+    background:transparent;cursor:pointer;
+}
+.voice-btn{flex:1;height:42px;border-radius:12px;background:rgba(255,255,255,0.12);color:#fff;border:none;font-size:17px;cursor:pointer;}
 
-/* ✅ +號選單：輸入列【下方彈出】，不是往上蓋 */
 .more-menu{
     position:absolute;left:0;right:0;top:100%;
     background:rgba(18,20,28,0.92);
@@ -62,35 +85,40 @@ html,body{height:100%;overflow:hidden;}
 </head>
 <body>
 <div class="wrap">
-    <div class="bg-layer"></div>
-    <div class="chat-panel">
-        <div class="panel-title">▼ 歷史紀錄</div>
-        <div class="chat-content">
-            <div class="msg me">
-                <div class="bubble">幫我查一下彰化的天氣</div>
-            </div>
-            <div class="msg ai">
-                <div class="loading">
-                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <!-- 上 4份：小祕半身空間 -->
+    <div class="character-area">
+        <div class="placeholder">【小祕半身動畫區】</div>
+    </div>
+    <!-- 下 2份：對話面板 + 輸入列整套 -->
+    <div class="chat-container">
+        <div class="chat-panel">
+            <div class="panel-title">▼ 歷史紀錄</div>
+            <div class="chat-content">
+                <div class="msg me">
+                    <div class="bubble">幫我查一下彰化的天氣</div>
+                </div>
+                <div class="msg ai">
+                    <div class="loading">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
+                </div>
+                <div class="msg ai">
+                    <div class="bubble">好的，小秘書正在為您查詢...</div>
                 </div>
             </div>
-            <div class="msg ai">
-                <div class="bubble">好的，小秘書正在為您查詢...</div>
-            </div>
         </div>
-        <div class="chat-space"></div>
-    </div>
-    <div class="bottom-bar">
-        <button class="bar-btn" id="keyBtn">⌨</button>
-        <button class="voice-btn" id="voiceBtn">按住 說話</button>
-        <button class="bar-btn" id="emojiBtn">☺</button>
-        <button class="bar-btn" id="plusBtn">+</button>
-        <div class="more-menu" id="menu">
-            <div class="menu-grid">
-                <div class="menu-item">照片庫</div>
-                <div class="menu-item">拍攝</div>
-                <div class="menu-item">皮膚</div>
-                <div class="menu-item">設定</div>
+        <div class="bottom-bar">
+            <button class="bar-btn" id="keyBtn">⌨</button>
+            <button class="voice-btn" id="voiceBtn">按住 說話</button>
+            <button class="bar-btn" id="emojiBtn">☺</button>
+            <button class="bar-btn" id="plusBtn">+</button>
+            <div class="more-menu" id="menu">
+                <div class="menu-grid">
+                    <div class="menu-item">照片庫</div>
+                    <div class="menu-item">拍攝</div>
+                    <div class="menu-item">皮膚</div>
+                    <div class="menu-item">設定</div>
+                </div>
             </div>
         </div>
     </div>
@@ -102,7 +130,6 @@ const voiceBtn = document.getElementById('voiceBtn');
 const emojiBtn = document.getElementById('emojiBtn');
 const keyBtn = document.getElementById('keyBtn');
 
-// +選單
 plusBtn.onclick = (e)=>{
     e.stopPropagation();
     menu.classList.toggle('show');
@@ -111,7 +138,6 @@ document.body.addEventListener('click',e=>{
     if(!plusBtn.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('show');
 })
 
-// 語音按鈕
 voiceBtn.onmousedown = voiceBtn.ontouchstart = ()=>{
     voiceBtn.innerText = '放開結束錄音';
 }
@@ -119,7 +145,6 @@ voiceBtn.onmouseup = voiceBtn.ontouchend = ()=>{
     voiceBtn.innerText = '按住 說話';
 }
 
-// 表情、鍵盤按鈕提示（後續擴充面板）
 emojiBtn.onclick = ()=>alert('表情面板（待開發）');
 keyBtn.onclick = ()=>alert('切換文字輸入（待開發）');
 </script>
