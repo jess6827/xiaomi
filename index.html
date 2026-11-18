@@ -11,13 +11,15 @@ html,body{
   height:100%;
   background:#f2f4f7;
   overflow:hidden;
-}
-body{
-  padding:12px;
   display:flex;
   flex-direction:column;
 }
+body{
+  padding:12px;
+  padding-bottom:12px;
+}
 
+/* 小祕區：固定 6 份 */
 .anim-area{
   flex: 0 0 60%;
   background:#eef2f7;
@@ -26,10 +28,22 @@ body{
   align-items:center;
   justify-content:center;
   color:#888;
-  margin-bottom:8px;
+  margin-bottom:10px;
   flex-shrink:0;
+  transition: transform 0.25s ease;
 }
 
+/* 下方容器：歷史 + 底部 */
+.bottom-wrapper{
+  flex: 1;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-height:0;
+  transition: transform 0.25s ease;
+}
+
+/* 一般狀態歷史對話框 */
 .chat-wrap{
   flex:1;
   background:#ffffff;
@@ -38,11 +52,10 @@ body{
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
   display:flex;
   flex-direction:column;
-  transition: transform 0.25s ease;
-  min-height:0;
-  margin-bottom:8px;
+  min-height:70px;
 }
 
+/* 歷史紀錄標題列：只保留一個三角形 */
 .chat-header{
   display:flex;
   align-items:center;
@@ -52,8 +65,8 @@ body{
   color:#666;
   margin-bottom:10px;
   cursor:pointer;
-  flex-shrink:0;
 }
+
 .chat-box{
   flex:1;
   display:flex;
@@ -61,6 +74,7 @@ body{
   gap:12px;
   overflow-y:auto;
 }
+
 .msg{
   max-width:80%;
   padding:12px 14px;
@@ -80,6 +94,7 @@ body{
   align-self:flex-start;
   border-bottom-left-radius:6px;
 }
+
 .dot-wrap{
   display:flex;
   gap:5px;
@@ -99,41 +114,36 @@ body{
   40%{transform:scale(1.1)}
 }
 
-/* 底部輸入區 */
-.input-wrap{
-  position:relative;
-  background:#fff;
-  border-radius:24px;
-  padding:9px 12px;
+/* 底部區域：輸入列永遠貼底，彈窗從輸入列上方往上彈 */
+.bottom-area{
   display:flex;
-  align-items:center;
-  gap:9px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
-  z-index:15;
+  flex-direction:column-reverse;
+  gap:10px;
+  flex-shrink:0;
 }
 
-/* 彈窗：fixed 定位，獨立在最上層 */
+/* 加號彈窗：只放圖標，降低高度 */
 .ctrl-bar{
-  position:fixed;
-  left:12px;
-  right:12px;
   background:#fff;
   border-radius:24px;
-  padding:10px 8px;
+  padding:12px 10px;
   display:none;
   justify-content:space-around;
-  box-shadow:0 4px 12px rgba(0,0,0,0.12);
-  z-index:999;
+  box-shadow:0 2px 10px rgba(0,0,0,0.06);
 }
-.ctrl-bar.show{display:flex;}
+.ctrl-bar.show{
+  display:flex;
+}
+
 .ctrl-item{
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
 }
+
 .ctrl-icon{
-  width:44px;height:44px;
+  width:46px;height:46px;
   background:#f3f4f6;
   border-radius:16px;
   display:flex;
@@ -141,9 +151,21 @@ body{
   justify-content:center;
 }
 
+/* 輸入列：壓矮一點、更緊湊 */
+.input-wrap{
+  background:#fff;
+  border-radius:24px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  flex-shrink:0;
+}
+
 #voiceHoldBtn{
   flex:1;
-  padding:9px 0;
+  padding:10px 0;
   background:#f7f8fa;
   border-radius:14px;
   text-align:center;
@@ -151,9 +173,10 @@ body{
   color:#333;
   user-select:none;
 }
+/* 文字輸入框 */
 #textInput{
   flex:1;
-  padding:9px 12px;
+  padding:10px 12px;
   background:#f7f8fa;
   border-radius:14px;
   border:none;
@@ -161,8 +184,9 @@ body{
   font-size:16px;
   display:none;
 }
+
 .icon-btn{
-  width:34px;height:34px;
+  width:36px;height:36px;
   border:none;
   background:transparent;
   cursor:pointer;
@@ -171,6 +195,7 @@ body{
   justify-content:center;
 }
 
+/* ===== 重點：展開的大歷史面板，懸浮、近滿版、保留圓角邊距 ===== */
 .full-history-panel{
   position:fixed;
   inset:16px;
@@ -182,7 +207,9 @@ body{
   flex-direction:column;
   padding:14px;
 }
-.full-history-panel.show{display:flex;}
+.full-history-panel.show{
+  display:flex;
+}
 .full-history-header{
   display:flex;
   align-items:center;
@@ -205,7 +232,7 @@ body{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.5);
   display:none;align-items:center;justify-content:center;
-  z-index:1000;padding:24px;
+  z-index:100;padding:24px;
 }
 .modal-box{
   width:100%;
@@ -232,59 +259,66 @@ body{
 </style>
 </head>
 <body>
+
 <div class="anim-area">【小祕 6份區域】</div>
-<div class="chat-wrap" id="chatWrap">
-  <div class="chat-header" id="historyToggle">
-    <span id="historyArrow">▼</span>
-    <span>歷史紀錄</span>
-  </div>
-  <div class="chat-box" id="chat">
-    <div class="msg user">幫我查一下彰化的天氣</div>
-    <div class="dot-wrap">
-      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+
+<div class="bottom-wrapper" id="bottomWrap">
+  <div class="chat-wrap" id="chatWrap">
+    <div class="chat-header" id="historyToggle">
+      <span id="historyArrow">▼</span>
+      <span>歷史紀錄</span>
     </div>
-    <div class="msg ai">好的，小祕正在為您查詢...</div>
+    <div class="chat-box" id="chat">
+      <div class="msg user">幫我查一下彰化的天氣</div>
+      <div class="dot-wrap">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="msg ai">好的，小祕正在為您查詢...</div>
+      <div class="msg ai">辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？</div>
+    </div>
+  </div>
+
+  <div class="bottom-area" id="bottomArea">
+    <div class="ctrl-bar" id="ctrlBar">
+      <div class="ctrl-item" onclick="openCam()">
+        <div class="ctrl-icon">
+          <i class="fa fa-camera" style="font-size:24px;color:#333"></i>
+        </div>
+      </div>
+      <div class="ctrl-item" onclick="openGallery()">
+        <div class="ctrl-icon">
+          <i class="fa fa-picture-o" style="font-size:24px;color:#333"></i>
+        </div>
+      </div>
+      <div class="ctrl-item" onclick="changeSkin()">
+        <div class="ctrl-icon">
+          <i class="fa fa-user" style="font-size:24px;color:#333"></i>
+        </div>
+      </div>
+      <div class="ctrl-item" onclick="openSetting()">
+        <div class="ctrl-icon">
+          <i class="fa fa-cog" style="font-size:24px;color:#333"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-wrap">
+      <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
+        <i class="fa fa-keyboard-o" style="font-size:24px;color:#333"></i>
+      </button>
+      <div id="voiceHoldBtn">按住 說話</div>
+      <input type="text" id="textInput" placeholder="輸入文字..." />
+      <button class="icon-btn" id="emojiBtn" aria-label="表情">
+        <i class="fa fa-smile-o" style="font-size:24px;color:#333"></i>
+      </button>
+      <button class="icon-btn" id="addBtn" aria-label="展開更多">
+        <i class="fa fa-plus" style="font-size:24px;color:#333"></i>
+      </button>
+    </div>
   </div>
 </div>
 
-<div class="input-wrap" id="inputWrap">
-  <button class="icon-btn" id="keyboardBtn">
-    <i class="fa fa-keyboard-o" style="font-size:22px;color:#333"></i>
-  </button>
-  <div id="voiceHoldBtn">按住 說話</div>
-  <input type="text" id="textInput" placeholder="輸入文字..." />
-  <button class="icon-btn" id="emojiBtn">
-    <i class="fa fa-smile-o" style="font-size:22px;color:#333"></i>
-  </button>
-  <button class="icon-btn" id="addBtn">
-    <i class="fa fa-plus" style="font-size:22px;color:#333"></i>
-  </button>
-</div>
-
-<!-- 彈窗獨立放到body最底 -->
-<div class="ctrl-bar" id="ctrlBar">
-  <div class="ctrl-item" onclick="openCam()">
-    <div class="ctrl-icon">
-      <i class="fa fa-camera" style="font-size:22px;color:#333"></i>
-    </div>
-  </div>
-  <div class="ctrl-item" onclick="openGallery()">
-    <div class="ctrl-icon">
-      <i class="fa fa-picture-o" style="font-size:22px;color:#333"></i>
-    </div>
-  </div>
-  <div class="ctrl-item" onclick="changeSkin()">
-    <div class="ctrl-icon">
-      <i class="fa fa-user" style="font-size:22px;color:#333"></i>
-    </div>
-  </div>
-  <div class="ctrl-item" onclick="openSetting()">
-    <div class="ctrl-icon">
-      <i class="fa fa-cog" style="font-size:22px;color:#333"></i>
-    </div>
-  </div>
-</div>
-
+<!-- 懸浮大歷史面板，接近滿版、有圓角邊距 -->
 <div class="full-history-panel" id="fullHistoryPanel">
   <div class="full-history-header" id="closeFullHistory">
     <span>▲</span>
@@ -313,33 +347,29 @@ const fullHistoryPanel = document.getElementById('fullHistoryPanel');
 const settingModal = document.getElementById('settingModal');
 const ctrlBar = document.getElementById('ctrlBar');
 const addBtn = document.getElementById('addBtn');
-const chatWrap = document.getElementById('chatWrap');
+const bottomWrap = document.getElementById('bottomWrap');
 const voiceBtn = document.getElementById('voiceHoldBtn');
 const textInput = document.getElementById('textInput');
 const keyboardBtn = document.getElementById('keyboardBtn');
-const inputWrap = document.getElementById('inputWrap');
 
 let menuOpen = false;
 let keyboardOpen = false;
-const SHIFT_UP = -140;
+const offsetVal = -120; // 往上推的距離，可自行調整
 
-// 更新彈窗位置，貼在輸入框下方
-function updateCtrlBarPos(){
-  const rect = inputWrap.getBoundingClientRect();
-  ctrlBar.style.top = (rect.bottom + 6) + 'px';
-}
-
+// 重置所有狀態
 function resetAllState(){
   ctrlBar.classList.remove('show');
   textInput.style.display = 'none';
   voiceBtn.style.display = 'block';
-  chatWrap.style.transform = '';
+  bottomWrap.style.transform = '';
   menuOpen = false;
   keyboardOpen = false;
 }
 
+// 加號按鈕：彈窗打開，關閉鍵盤
 addBtn.onclick = ()=>{
   if(keyboardOpen){
+    // 鍵盤開著，先關鍵盤，再開彈窗
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
@@ -347,15 +377,15 @@ addBtn.onclick = ()=>{
   }
   menuOpen = !menuOpen;
   if(menuOpen){
-    updateCtrlBarPos();
     ctrlBar.classList.add('show');
-    chatWrap.style.transform = `translateY(${SHIFT_UP}px)`;
+    bottomWrap.style.transform = `translateY(${offsetVal}px)`;
   }else{
     ctrlBar.classList.remove('show');
-    chatWrap.style.transform = '';
+    bottomWrap.style.transform = '';
   }
 }
 
+// 鍵盤按鈕：切換文字輸入，關閉彈窗
 keyboardBtn.onclick = ()=>{
   if(menuOpen){
     ctrlBar.classList.remove('show');
@@ -366,33 +396,40 @@ keyboardBtn.onclick = ()=>{
     voiceBtn.style.display = 'none';
     textInput.style.display = 'block';
     textInput.focus();
-    chatWrap.style.transform = `translateY(${SHIFT_UP}px)`;
+    bottomWrap.style.transform = `translateY(${offsetVal}px)`;
   }else{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
-    chatWrap.style.transform = '';
+    bottomWrap.style.transform = '';
   }
 }
 
+// 輸入框送出文字
 textInput.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' && textInput.value.trim()){
+  if(e.key === 'Enter' && textInput.value.trim() !== ''){
     addMsg(textInput.value.trim(), true);
     textInput.value = '';
     resetAllState();
   }
 })
 
+// 點三角：打開【懸浮大歷史面板】
 historyToggle.onclick = ()=>{
   fullHistoryBox.innerHTML = chatBox.innerHTML;
   fullHistoryPanel.classList.add('show');
 }
+// 大面板上面的三角，關閉
 closeFullHistory.onclick = ()=>{
   fullHistoryPanel.classList.remove('show');
 }
 
-function openSetting(){settingModal.style.display='flex'}
-function closeModal(){settingModal.style.display='none'}
+function openSetting(){
+  settingModal.style.display = 'flex';
+}
+function closeModal(){
+  settingModal.style.display = 'none';
+}
 function saveApiKey(){
   const key = document.getElementById('apiKeyInput').value.trim();
   localStorage.setItem('gemini_key', key);
@@ -416,6 +453,7 @@ function addMsg(text, isUser){
   div.innerText = text;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
+  // 同步到大歷史面板
   if(fullHistoryPanel.classList.contains('show')){
     fullHistoryBox.innerHTML = chatBox.innerHTML;
     fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
@@ -438,5 +476,6 @@ voiceBtn.addEventListener('touchend',()=>{
   },1200)
 })
 </script>
+
 </body>
 </html>
