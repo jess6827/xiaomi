@@ -5,127 +5,170 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>小祕</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-body{background:#f3f4f6;padding:16px;padding-bottom:140px}
-.anim-area{text-align:center;color:#999;margin-bottom:12px;font-size:14px}
-.history-wrap{background:#fff;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px #00000012}
-.history-title{text-align:center;font-size:16px;color:#666;margin-bottom:12px;cursor:pointer}
-.chat-box{display:flex;flex-direction:column;gap:12px}
-.msg{max-width:78%;padding:12px 14px;border-radius:16px;line-height:1.5;font-size:15px}
-.msg.user{background:#22c55e;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
-.msg.ai{background:#f1f1f1;color:#222;align-self:flex-start;border-bottom-left-radius:4px}
-.ctrl-bar{display:flex;justify-content:space-around;background:#fff;border-radius:20px;padding:14px 8px;margin:12px 0;box-shadow:0 2px 10px #00000012}
-.ctrl-item{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:#444}
-.ctrl-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center}
-.input-wrap{position:fixed;bottom:16px;left:16px;right:16px;background:#fff;border-radius:24px;padding:10px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 12px #00000018}
-#input{flex:1;border:none;outline:none;font-size:16px;padding:8px 4px}
-.btn-send{width:44px;height:44px;border-radius:50%;border:none;background:#22c55e;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.voice-tip{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 20px;border-radius:12px;display:none}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, sans-serif;}
+html,body{height:100%;overflow:hidden;}
+.wrap{width:100%;height:100%;position:relative;display:flex;flex-direction:column;}
+
+.character-area{
+    flex:4;
+    position:relative;
+    z-index:1;
+}
+.character-area .placeholder{
+    width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    color:#cfd3dc;font-size:16px;
+}
+
+.chat-container{
+    flex:2;
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    padding:0 5%;
+    gap:12px;
+}
+
+/* 歷史紀錄面板：灰白半透 + 陰影 */
+.chat-panel{
+    flex:1;
+    background: rgba(245, 247, 250, 0.72);
+    border-radius:22px;
+    border: 1px solid rgba(220, 224, 230, 0.7);
+    display:flex;
+    flex-direction:column;
+    box-shadow: 0 10px 30px rgba(20, 30, 60, 0.12);
+    backdrop-filter: blur(10px);
+}
+.panel-title{
+    padding:14px;
+    text-align:center;
+    color:#6f7887;
+    font-size:15px;
+}
+.chat-content{flex:1;padding:12px;overflow-y:auto;}
+
+.msg{margin:8px 0;max-width:72%;}
+.msg.me{margin-left:auto;}
+.msg.me .bubble{
+    background:#36c870;color:#fff;
+    border-radius:16px 4px 16px 16px;
+    padding:10px 14px;font-size:16px;
+}
+.msg.ai{margin-right:auto;}
+.msg.ai .bubble{
+    background:#ffffff;color:#1f2937;
+    border-radius:4px 16px 16px 16px;
+    padding:10px 14px;font-size:16px;
+    box-shadow: 0 2px 8px rgba(20, 30, 60, 0.06);
+}
+.loading{display:flex;gap:6px;padding:10px 14px;}
+.dot{width:10px;height:10px;border-radius:50%;background:#5ec4ff;animation:dot 1.2s infinite;}
+.dot:nth-child(2){animation-delay:0.2s}
+.dot:nth-child(3){animation-delay:0.4s}
+@keyframes dot{0%,40%{opacity:0.3}20%{opacity:1}}
+
+/* 底部輸入列：豆包同款、全圓角、白色、陰影 */
+.bottom-bar{
+    position:relative;
+    min-height:64px;
+    max-height:82px;
+    background:#ffffff;
+    border:1px solid #eef1f5;
+    border-radius:18px;
+    box-shadow: 0 10px 24px rgba(20, 30, 60, 0.18);
+    display:flex;align-items:center;gap:12px;padding:0 16px;
+}
+.bar-btn{
+    width:42px;height:42px;
+    border-radius:50%;
+    border:1px solid #e5e7eb;color:#1f2937;
+    display:grid;place-items:center;
+    font-size:26px;background:#fff;cursor:pointer;
+}
+.voice-btn{
+    flex:1;height:44px;border-radius:14px;
+    background:#f5f7fa;color:#1f2937;
+    border:1px solid #eef1f5;font-size:16px;cursor:pointer;
+}
+
+.more-menu{
+    position:absolute;left:0;right:0;top:100%;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;display:none;
+    z-index:3;
+    box-shadow: 0 14px 28px rgba(20, 30, 60, 0.18);
+}
+.more-menu.show{display:block;}
+.menu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.menu-item{text-align:center;color:#374151;font-size:14px;padding:8px 0;cursor:pointer;}
 </style>
 </head>
 <body>
-<div class="anim-area">【小祕半身動畫區】</div>
-<div class="history-wrap">
-  <div class="history-title">▼ 歷史紀錄</div>
-  <div class="chat-box" id="chat"></div>
+<div class="wrap">
+    <div class="character-area">
+        <div class="placeholder">【小祕半身動畫區】</div>
+    </div>
+    <div class="chat-container">
+        <div class="chat-panel">
+            <div class="panel-title">▼ 歷史紀錄</div>
+            <div class="chat-content">
+                <div class="msg me">
+                    <div class="bubble">幫我查一下彰化的天氣</div>
+                </div>
+                <div class="msg ai">
+                    <div class="loading">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
+                </div>
+                <div class="msg ai">
+                    <div class="bubble">好的，小秘書正在為您查詢...</div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-bar">
+            <button class="bar-btn" id="keyBtn">⌨</button>
+            <button class="voice-btn" id="voiceBtn">按住 說話</button>
+            <button class="bar-btn" id="emojiBtn">☺</button>
+            <button class="bar-btn" id="plusBtn">+</button>
+            <div class="more-menu" id="menu">
+                <div class="menu-grid">
+                    <div class="menu-item">照片庫</div>
+                    <div class="menu-item">拍攝</div>
+                    <div class="menu-item">皮膚</div>
+                    <div class="menu-item">設定</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="ctrl-bar">
-  <div class="ctrl-item" onclick="openCam()">
-    <div class="ctrl-icon">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-        <circle cx="12" cy="13" r="3"></circle>
-      </svg>
-    </div>
-    <span>相機</span>
-  </div>
-  <div class="ctrl-item" onclick="openGallery()">
-    <div class="ctrl-icon">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-        <path d="M21 15l-5-5L5 21"></path>
-      </svg>
-    </div>
-    <span>圖庫</span>
-  </div>
-  <div class="ctrl-item" onclick="openSkin()">
-    <div class="ctrl-icon">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="#222">
-        <path d="M20 7l-3-4H7L4 7h2v11h12V7h2zM9 9H6.5L8 6h8l1.5 3H15v10H9V9z"/>
-      </svg>
-    </div>
-    <span>皮膚</span>
-  </div>
-  <div class="ctrl-item" onclick="openSetting()">
-    <div class="ctrl-icon">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-    </div>
-    <span>設定</span>
-  </div>
-</div>
-<div class="input-wrap">
-  <button id="voiceBtn" class="btn-send" style="background:#eee;color:#222">🎤</button>
-  <input id="input" placeholder="輸入文字" oninput="switchBtn()">
-  <button id="sendBtn" class="btn-send" style="display:none">↵</button>
-</div>
-<div class="voice-tip" id="voiceTip">按住說話，放開送出</div>
 <script>
-let isVoiceMode = false;
-const chatDom = document.getElementById('chat');
-const inputDom = document.getElementById('input');
-const sendBtn = document.getElementById('sendBtn');
+const plusBtn = document.getElementById('plusBtn');
+const menu = document.getElementById('menu');
 const voiceBtn = document.getElementById('voiceBtn');
-const voiceTip = document.getElementById('voiceTip');
+const emojiBtn = document.getElementById('emojiBtn');
+const keyBtn = document.getElementById('keyBtn');
 
-// 切換按鈕：有文字時顯示換行，空的顯示麥克風
-function switchBtn(){
-  if(inputDom.value.trim() !== ''){
-    sendBtn.style.display = 'flex';
-    voiceBtn.style.display = 'none';
-    sendBtn.textContent = '↵';
-  }else{
-    sendBtn.style.display = 'none';
-    voiceBtn.style.display = 'flex';
-  }
+plusBtn.onclick = (e)=>{
+    e.stopPropagation();
+    menu.classList.toggle('show');
 }
-// 換行
-sendBtn.onclick = ()=>{
-  const val = inputDom.value;
-  inputDom.value = val + '\n';
-  inputDom.scrollTop = inputDom.scrollHeight;
-}
-// 麥克風按鈕：長按語音，放開可退回鍵盤
-let voiceTimer = null;
-voiceBtn.addEventListener('mousedown',startVoice);
-voiceBtn.addEventListener('touchstart',startVoice);
-voiceBtn.addEventListener('mouseup',endVoice);
-voiceBtn.addEventListener('mouseleave',endVoice);
-voiceBtn.addEventListener('touchend',endVoice);
+document.body.addEventListener('click',e=>{
+    if(!plusBtn.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('show');
+})
 
-function startVoice(){
-  isVoiceMode = true;
-  voiceTip.style.display = 'block';
+voiceBtn.onmousedown = voiceBtn.ontouchstart = ()=>{
+    voiceBtn.innerText = '放開結束錄音';
 }
-function endVoice(){
-  if(!isVoiceMode)return;
-  isVoiceMode = false;
-  voiceTip.style.display = 'none';
-  switchBtn();
+voiceBtn.onmouseup = voiceBtn.ontouchend = ()=>{
+    voiceBtn.innerText = '按住 說話';
 }
-function addMsg(text,type){
-  const div = document.createElement('div');
-  div.className = `msg ${type}`;
-  div.innerText = text;
-  chatDom.appendChild(div);
-}
-function openCam(){alert('開啟相機')}
-function openGallery(){alert('開啟圖庫')}
-function openSkin(){alert('切換皮膚')}
-function openSetting(){alert('開啟設定，填入API Key')}
+
+emojiBtn.onclick = ()=>alert('表情面板（待開發）');
+keyBtn.onclick = ()=>alert('切換文字輸入（待開發）');
 </script>
 </body>
 </html>
