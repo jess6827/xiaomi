@@ -11,12 +11,15 @@ html,body{
   height:100%;
   background:#f2f4f7;
   overflow:hidden;
+}
+body{
+  padding:12px;
+  padding-bottom:0;
   display:flex;
   flex-direction:column;
 }
-body{padding:12px;}
 
-/* 上方小祕角色區 固定6成高度 */
+/* 小祕區：固定 6 份 */
 .anim-area{
   flex: 0 0 60%;
   background:#eef2f7;
@@ -25,30 +28,32 @@ body{padding:12px;}
   align-items:center;
   justify-content:center;
   color:#888;
-  margin-bottom:0px;
+  margin-bottom:10px;
   flex-shrink:0;
 }
 
-/* 下方容器：歷史 + 輸入，一整塊一起移動 */
-.bottom-container{
+/* 中間區：放歷史框，允許上移，但不被壓縮 */
+.middle-area{
   flex:1;
-  display:flex;
-  flex-direction:column;
-  transition: transform 0.25s ease;
+  position:relative;
   min-height:0;
+  padding-bottom:14px;
 }
 
-/* 歷史對話框：緊貼輸入框，margin-bottom:0 沒有空隙 */
+/* 歷史框：固定在中間區頂部，高度用 max-height 控制，不 flex:1 被擠 */
 .chat-wrap{
-  flex:1;
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  bottom:14px;
   background:#ffffff;
   border-radius:24px;
   padding:14px;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
   display:flex;
   flex-direction:column;
-  min-height:70px;
-  margin-bottom:0px;
+  transition: transform 0.25s ease;
 }
 
 .chat-header{
@@ -60,7 +65,9 @@ body{padding:12px;}
   color:#666;
   margin-bottom:10px;
   cursor:pointer;
+  flex-shrink:0;
 }
+
 .chat-box{
   flex:1;
   display:flex;
@@ -68,6 +75,7 @@ body{padding:12px;}
   gap:12px;
   overflow-y:auto;
 }
+
 .msg{
   max-width:80%;
   padding:12px 14px;
@@ -87,6 +95,7 @@ body{padding:12px;}
   align-self:flex-start;
   border-bottom-left-radius:6px;
 }
+
 .dot-wrap{
   display:flex;
   gap:5px;
@@ -106,13 +115,17 @@ body{padding:12px;}
   40%{transform:scale(1.1)}
 }
 
-/* ========== 彈窗：絕對定位，貼在輸入框上方！不佔正常文檔流 ========== */
+/* 底部輸入區：固定貼底 */
+.bottom-area{
+  flex-shrink:0;
+  padding-bottom:12px;
+}
+
 .input-row{
   position:relative;
-  flex-shrink:0;
-  margin-top:8px;
 }
-/* 加號彈窗，固定在輸入框正上方，緊貼 */
+
+/* 加號彈窗：絕對定位，緊貼輸入框上方 */
 .ctrl-bar{
   position:absolute;
   bottom:100%;
@@ -121,18 +134,22 @@ body{padding:12px;}
   background:#fff;
   border-radius:24px;
   padding:12px 10px;
+  display:none;
   justify-content:space-around;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  display:none;
   margin-bottom:8px;
 }
-.ctrl-bar.show{display:flex;}
+.ctrl-bar.show{
+  display:flex;
+}
+
 .ctrl-item{
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
 }
+
 .ctrl-icon{
   width:46px;height:46px;
   background:#f3f4f6;
@@ -152,6 +169,7 @@ body{padding:12px;}
   gap:10px;
   box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
+
 #voiceHoldBtn{
   flex:1;
   padding:10px 0;
@@ -162,6 +180,7 @@ body{padding:12px;}
   color:#333;
   user-select:none;
 }
+
 #textInput{
   flex:1;
   padding:10px 12px;
@@ -172,6 +191,7 @@ body{padding:12px;}
   font-size:16px;
   display:none;
 }
+
 .icon-btn{
   width:36px;height:36px;
   border:none;
@@ -182,7 +202,7 @@ body{padding:12px;}
   justify-content:center;
 }
 
-/* 歷史全螢幕面板 */
+/* 懸浮大歷史面板 */
 .full-history-panel{
   position:fixed;
   inset:16px;
@@ -194,7 +214,9 @@ body{padding:12px;}
   flex-direction:column;
   padding:14px;
 }
-.full-history-panel.show{display:flex;}
+.full-history-panel.show{
+  display:flex;
+}
 .full-history-header{
   display:flex;
   align-items:center;
@@ -244,8 +266,10 @@ body{padding:12px;}
 </style>
 </head>
 <body>
+
 <div class="anim-area">【小祕 6份區域】</div>
-<div class="bottom-container" id="bottomContainer">
+
+<div class="middle-area" id="middleArea">
   <div class="chat-wrap" id="chatWrap">
     <div class="chat-header" id="historyToggle">
       <span id="historyArrow">▼</span>
@@ -257,8 +281,12 @@ body{padding:12px;}
         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
       </div>
       <div class="msg ai">好的，小祕正在為您查詢...</div>
+      <div class="msg ai">辛苦啦！回到家就好好放鬆吧，今天過得還順利嗎？</div>
     </div>
   </div>
+</div>
+
+<div class="bottom-area">
   <div class="input-row">
     <div class="ctrl-bar" id="ctrlBar">
       <div class="ctrl-item" onclick="openCam()">
@@ -282,16 +310,17 @@ body{padding:12px;}
         </div>
       </div>
     </div>
+
     <div class="input-wrap">
-      <button class="icon-btn" id="keyboardBtn">
+      <button class="icon-btn" id="keyboardBtn" aria-label="鍵盤">
         <i class="fa fa-keyboard-o" style="font-size:24px;color:#333"></i>
       </button>
       <div id="voiceHoldBtn">按住 說話</div>
       <input type="text" id="textInput" placeholder="輸入文字..." />
-      <button class="icon-btn" id="emojiBtn">
+      <button class="icon-btn" id="emojiBtn" aria-label="表情">
         <i class="fa fa-smile-o" style="font-size:24px;color:#333"></i>
       </button>
-      <button class="icon-btn" id="addBtn">
+      <button class="icon-btn" id="addBtn" aria-label="展開更多">
         <i class="fa fa-plus" style="font-size:24px;color:#333"></i>
       </button>
     </div>
@@ -305,6 +334,7 @@ body{padding:12px;}
   </div>
   <div class="full-history-box" id="fullHistoryBox"></div>
 </div>
+
 <div class="modal-mask" id="settingModal">
   <div class="modal-box">
     <div class="modal-title">請輸入 Gemini API Key：</div>
@@ -325,20 +355,20 @@ const fullHistoryPanel = document.getElementById('fullHistoryPanel');
 const settingModal = document.getElementById('settingModal');
 const ctrlBar = document.getElementById('ctrlBar');
 const addBtn = document.getElementById('addBtn');
-const bottomContainer = document.getElementById('bottomContainer');
+const chatWrap = document.getElementById('chatWrap');
 const voiceBtn = document.getElementById('voiceHoldBtn');
 const textInput = document.getElementById('textInput');
 const keyboardBtn = document.getElementById('keyboardBtn');
 
 let menuOpen = false;
 let keyboardOpen = false;
-const SHIFT_UP = -130; // 往上推的距離，覺得太高太低可以改這個數字
+const SHIFT_UP = -130;
 
 function resetAllState(){
   ctrlBar.classList.remove('show');
   textInput.style.display = 'none';
   voiceBtn.style.display = 'block';
-  bottomContainer.style.transform = '';
+  chatWrap.style.transform = '';
   menuOpen = false;
   keyboardOpen = false;
 }
@@ -351,13 +381,8 @@ addBtn.onclick = ()=>{
     keyboardOpen = false;
   }
   menuOpen = !menuOpen;
-  if(menuOpen){
-    ctrlBar.classList.add('show');
-    bottomContainer.style.transform = `translateY(${SHIFT_UP}px)`;
-  }else{
-    ctrlBar.classList.remove('show');
-    bottomContainer.style.transform = '';
-  }
+  ctrlBar.classList.toggle('show', menuOpen);
+  chatWrap.style.transform = menuOpen ? `translateY(${SHIFT_UP}px)` : '';
 }
 
 keyboardBtn.onclick = ()=>{
@@ -366,16 +391,17 @@ keyboardBtn.onclick = ()=>{
     menuOpen = false;
   }
   keyboardOpen = !keyboardOpen;
+
   if(keyboardOpen){
     voiceBtn.style.display = 'none';
     textInput.style.display = 'block';
     textInput.focus();
-    bottomContainer.style.transform = `translateY(${SHIFT_UP}px)`;
+    chatWrap.style.transform = `translateY(${SHIFT_UP}px)`;
   }else{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
-    bottomContainer.style.transform = '';
+    chatWrap.style.transform = '';
   }
 }
 
@@ -391,12 +417,17 @@ historyToggle.onclick = ()=>{
   fullHistoryBox.innerHTML = chatBox.innerHTML;
   fullHistoryPanel.classList.add('show');
 }
+
 closeFullHistory.onclick = ()=>{
   fullHistoryPanel.classList.remove('show');
 }
 
-function openSetting(){settingModal.style.display='flex'}
-function closeModal(){settingModal.style.display='none'}
+function openSetting(){
+  settingModal.style.display = 'flex';
+}
+function closeModal(){
+  settingModal.style.display = 'none';
+}
 function saveApiKey(){
   const key = document.getElementById('apiKeyInput').value.trim();
   localStorage.setItem('gemini_key', key);
@@ -414,12 +445,14 @@ function showLoading(){
   chatBox.scrollTop = chatBox.scrollHeight;
   return div;
 }
+
 function addMsg(text, isUser){
   const div = document.createElement('div');
   div.className = 'msg ' + (isUser ? 'user' : 'ai');
   div.innerText = text;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
+
   if(fullHistoryPanel.classList.contains('show')){
     fullHistoryBox.innerHTML = chatBox.innerHTML;
     fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
@@ -442,5 +475,6 @@ voiceBtn.addEventListener('touchend',()=>{
   },1200)
 })
 </script>
+
 </body>
 </html>
