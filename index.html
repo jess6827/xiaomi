@@ -35,16 +35,24 @@ body{
   flex-direction:column;
   min-height:0;
 }
+/* 歷史紀錄改成彈窗，預設隱藏 */
 .chat-wrap{
-  flex:1;
+  position:fixed;
+  left:12px;
+  right:12px;
+  bottom:calc(12px + 90px);
   background:#ffffff;
   border-radius:24px;
   padding:14px;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  display:flex;
+  display:none;
   flex-direction:column;
-  min-height:70px;
-  margin-bottom:2px;
+  min-height:180px;
+  max-height:45vh;
+  z-index:8;
+}
+.chat-wrap.show{
+  display:flex;
 }
 .chat-header{
   display:flex;
@@ -105,7 +113,6 @@ body{
   flex-direction:column;
   flex-shrink:0;
 }
-/* 彈窗：正常文檔流，不使用absolute，跟隨頁面布局 */
 .ctrl-bar{
   background:#fff;
   border-radius:20px;
@@ -235,6 +242,7 @@ body{
 <body>
 <div class="anim-area">【小祕 6份區域】</div>
 <div class="bottom-wrapper" id="bottomWrap">
+  <!-- 歷史紀錄彈窗 -->
   <div class="chat-wrap" id="chatWrap">
     <div class="chat-header" id="historyToggle">
       <span id="historyArrow">▼</span>
@@ -263,7 +271,6 @@ body{
         <i class="fa fa-plus" style="font-size:24px;color:#333"></i>
       </button>
     </div>
-    <!--彈窗在輸入框下方，正常文檔流，鍵盤彈出會跟著被往上推-->
     <div class="ctrl-bar" id="ctrlBar">
       <div class="ctrl-item" onclick="openCam()">
         <div class="ctrl-icon">
@@ -310,6 +317,7 @@ body{
 
 <script>
 const chatBox = document.getElementById('chat');
+const chatWrap = document.getElementById('chatWrap');
 const fullHistoryBox = document.getElementById('fullHistoryBox');
 const historyToggle = document.getElementById('historyToggle');
 const closeFullHistory = document.getElementById('closeFullHistory');
@@ -328,6 +336,7 @@ function resetAllState(){
   ctrlBar.classList.remove('show');
   textInput.style.display = 'none';
   voiceBtn.style.display = 'block';
+  chatWrap.classList.remove('show');
   menuOpen = false;
   keyboardOpen = false;
 }
@@ -337,6 +346,7 @@ addBtn.onclick = ()=>{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
+    chatWrap.classList.remove('show');
     keyboardOpen = false;
   }
   menuOpen = !menuOpen;
@@ -353,10 +363,12 @@ keyboardBtn.onclick = ()=>{
     voiceBtn.style.display = 'none';
     textInput.style.display = 'block';
     textInput.focus();
+    chatWrap.classList.add('show'); // 切文字模式 → 彈出歷史
   }else{
     textInput.blur();
     textInput.style.display = 'none';
     voiceBtn.style.display = 'block';
+    chatWrap.classList.remove('show'); // 切回語音 → 關閉歷史
   }
 }
 
@@ -364,7 +376,6 @@ textInput.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' && textInput.value.trim()){
     addMsg(textInput.value.trim(),true);
     textInput.value = '';
-    resetAllState();
   }
 })
 
