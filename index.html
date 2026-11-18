@@ -1,39 +1,155 @@
-/* 對話面板：淺灰白半透明 */
-.chat-panel {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow: 0 8px 30px rgba(30, 40, 70, 0.08);
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小祕</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, sans-serif;}
+html,body{height:100%;overflow:hidden;}
+.wrap{width:100%;height:100%;position:relative;display:flex;flex-direction:column;}
+
+/* 上層：小祕半身區 flex:4 */
+.character-area{
+    flex:4;
+    position:relative;
+    z-index:1;
+}
+.character-area .placeholder{
+    width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    color:#888;font-size:16px;
 }
 
-/* 小祕回覆氣泡 */
-.msg.ai .bubble {
-  background: rgba(255, 255, 255, 0.78);
-  color: #1f2937;
+/* 下層整套：對話面板+輸入列 flex:2 */
+.chat-container{
+    flex:2;
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    padding:0 5%;
+    gap:12px;
+}
+/* 對話面板：半透灰白 */
+.chat-panel{
+    flex:1;
+    background:rgba(255,255,255,0.55);
+    border-radius:22px;border:1px solid rgba(220,224,230,0.6);
+    display:flex;flex-direction:column;
+    backdrop-filter: blur(8px);
+}
+.panel-title{padding:14px;text-align:center;color:#666;font-size:18px;}
+.chat-content{flex:1;padding:12px;overflow-y:auto;}
+
+.msg{margin:8px 0;max-width:72%;}
+.msg.me{margin-left:auto;}
+.msg.me .bubble{background:#36c870;color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:16px;}
+.msg.ai{margin-right:auto;}
+.msg.ai .bubble{background:rgba(255,255,255,0.7);color:#333;border-radius:4px 16px 16px 16px;padding:10px 14px;font-size:16px;}
+.loading{display:flex;gap:6px;padding:10px 14px;}
+.dot{width:10px;height:10px;border-radius:50%;background:#5ec4ff;animation:dot 1.2s infinite;}
+.dot:nth-child(2){animation-delay:0.2s}
+.dot:nth-child(3){animation-delay:0.4s}
+@keyframes dot{0%,40%{opacity:0.3}20%{opacity:1}}
+
+/* 底部輸入列，豆包同款淺色 */
+.bottom-bar{
+    position:relative;
+    min-height:64px;
+    max-height:82px;
+    background:#f7f8fa;
+    border:1px solid #e5e7eb;
+    border-radius:16px 16px 0 0;
+    display:flex;align-items:center;gap:12px;padding:0 16px;
+}
+.bar-btn{
+    width:42px;height:42px;
+    border-radius:50%;
+    border:1px solid #d8dbe0;color:#333;
+    display:grid;place-items:center;
+    font-size:28px;
+    background:#fff;cursor:pointer;
+}
+.voice-btn{flex:1;height:42px;border-radius:12px;background:#ffffff;color:#333;border:1px solid #e5e7eb;font-size:17px;cursor:pointer;}
+
+.more-menu{
+    position:absolute;left:0;right:0;top:100%;
+    background:#f7f8fa;
+    border:1px solid #e5e7eb;
+    border-radius:0 0 16px 16px;
+    padding:16px;display:none;
+    z-index:3;
+}
+.more-menu.show{display:block;}
+.menu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.menu-item{text-align:center;color:#333;font-size:14px;padding:8px 0;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <!-- 上 4份：小祕半身空間 -->
+    <div class="character-area">
+        <div class="placeholder">【小祕半身動畫區】</div>
+    </div>
+    <!-- 下 2份：對話面板 + 輸入列整套 -->
+    <div class="chat-container">
+        <div class="chat-panel">
+            <div class="panel-title">▼ 歷史紀錄</div>
+            <div class="chat-content">
+                <div class="msg me">
+                    <div class="bubble">幫我查一下彰化的天氣</div>
+                </div>
+                <div class="msg ai">
+                    <div class="loading">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
+                </div>
+                <div class="msg ai">
+                    <div class="bubble">好的，小秘書正在為您查詢...</div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-bar">
+            <button class="bar-btn" id="keyBtn">⌨</button>
+            <button class="voice-btn" id="voiceBtn">按住 說話</button>
+            <button class="bar-btn" id="emojiBtn">☺</button>
+            <button class="bar-btn" id="plusBtn">+</button>
+            <div class="more-menu" id="menu">
+                <div class="menu-grid">
+                    <div class="menu-item">照片庫</div>
+                    <div class="menu-item">拍攝</div>
+                    <div class="menu-item">皮膚</div>
+                    <div class="menu-item">設定</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const plusBtn = document.getElementById('plusBtn');
+const menu = document.getElementById('menu');
+const voiceBtn = document.getElementById('voiceBtn');
+const emojiBtn = document.getElementById('emojiBtn');
+const keyBtn = document.getElementById('keyBtn');
+
+plusBtn.onclick = (e)=>{
+    e.stopPropagation();
+    menu.classList.toggle('show');
+}
+document.body.addEventListener('click',e=>{
+    if(!plusBtn.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('show');
+})
+
+voiceBtn.onmousedown = voiceBtn.ontouchstart = ()=>{
+    voiceBtn.innerText = '放開結束錄音';
+}
+voiceBtn.onmouseup = voiceBtn.ontouchend = ()=>{
+    voiceBtn.innerText = '按住 說話';
 }
 
-/* 標題文字 */
-.panel-title {
-  color: #5b6472;
-}
-
-/* 底部輸入列：豆包聊天列同款 */
-.bottom-bar {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  box-shadow: 0 -4px 20px rgba(20, 30, 60, 0.06);
-}
-
-/* 輸入按鈕 */
-.voice-btn {
-  background: #f5f6f8;
-  color: #1f2937;
-  border: 1px solid #eef0f3;
-}
-
-/* 圓圈按鈕：小外圈、深色細圖標 */
-.bar-btn {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #1f2937;
-}
+emojiBtn.onclick = ()=>alert('表情面板（待開發）');
+keyBtn.onclick = ()=>alert('切換文字輸入（待開發）');
+</script>
+</body>
+</html>
