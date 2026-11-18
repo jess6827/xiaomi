@@ -38,7 +38,7 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#4885ed;color:
   <div class="set-card">
     <h3>設定</h3>
     <label>Gemini API Key</label>
-    <input type="text" id="apiKeyInput" placeholder="貼上你的API Key">
+    <input type="text" id="apiKeyInput" placeholder="貼上完整API Key">
     <div style="display:flex;gap:8px;margin-top:10px">
       <button onclick="saveKey()">儲存</button>
       <button class="btn-close" onclick="closeSetting()">關閉</button>
@@ -84,7 +84,8 @@ async function sendMsg(){
   userInput.value = "";
   renderMsg(true, text);
   history.push({role:"user", parts:[{text:text}]});
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  // 換成 gemini-2.0-flash
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
   try{
     const res = await fetch(url,{
       method:"POST",
@@ -96,7 +97,7 @@ async function sendMsg(){
     })
     const data = await res.json();
     if(!data.candidates){
-      renderMsg(false,"發生錯誤，可能是金鑰錯誤或是配額用完。");
+      renderMsg(false,"發生錯誤，金鑰有誤、配額用完，或是GitHub Pages跨域限制。");
       return;
     }
     const reply = data.candidates[0].content.parts[0].text;
@@ -105,7 +106,7 @@ async function sendMsg(){
     speak(reply);
   }catch(err){
     console.error(err);
-    renderMsg(false,"連線錯誤，H5環境容易有CORS跨域問題，打包APK就正常。");
+    renderMsg(false,"連線錯誤，GitHub Pages網頁版容易遇到CORS跨域攔截，打包APK就不會有這個問題。");
   }
 }
 userInput.addEventListener('keydown',e=>{
