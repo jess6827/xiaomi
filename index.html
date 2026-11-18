@@ -30,7 +30,7 @@ body{
   color:#888;
   margin-bottom:10px;
   flex-shrink:0;
-  transition: margin 0.25s ease;
+  transition: transform 0.25s ease;
 }
 
 /* 下方容器：歷史 + 底部 */
@@ -40,6 +40,7 @@ body{
   flex-direction:column;
   gap:10px;
   min-height:0;
+  transition: transform 0.25s ease;
 }
 
 /* 一般狀態歷史對話框 */
@@ -52,7 +53,6 @@ body{
   display:flex;
   flex-direction:column;
   min-height:70px;
-  transition: flex 0.25s ease, margin 0.25s ease;
 }
 
 /* 歷史紀錄標題列：只保留一個三角形 */
@@ -173,6 +173,17 @@ body{
   color:#333;
   user-select:none;
 }
+/* 文字輸入框 */
+#textInput{
+  flex:1;
+  padding:10px 12px;
+  background:#f7f8fa;
+  border-radius:14px;
+  border:none;
+  outline:none;
+  font-size:16px;
+  display:none;
+}
 
 .icon-btn{
   width:36px;height:36px;
@@ -251,7 +262,7 @@ body{
 
 <div class="anim-area">【小祕 6份區域】</div>
 
-<div class="bottom-wrapper">
+<div class="bottom-wrapper" id="bottomWrap">
   <div class="chat-wrap" id="chatWrap">
     <div class="chat-header" id="historyToggle">
       <span id="historyArrow">▼</span>
@@ -296,6 +307,7 @@ body{
         <i class="fa fa-keyboard-o" style="font-size:24px;color:#333"></i>
       </button>
       <div id="voiceHoldBtn">按住 說話</div>
+      <input type="text" id="textInput" placeholder="輸入文字..." />
       <button class="icon-btn" id="emojiBtn" aria-label="表情">
         <i class="fa fa-smile-o" style="font-size:24px;color:#333"></i>
       </button>
@@ -330,33 +342,80 @@ body{
 const chatBox = document.getElementById('chat');
 const fullHistoryBox = document.getElementById('fullHistoryBox');
 const historyToggle = document.getElementById('historyToggle');
-const historyArrow = document.getElementById('historyArrow');
 const closeFullHistory = document.getElementById('closeFullHistory');
 const fullHistoryPanel = document.getElementById('fullHistoryPanel');
 const settingModal = document.getElementById('settingModal');
 const ctrlBar = document.getElementById('ctrlBar');
 const addBtn = document.getElementById('addBtn');
-const bottomArea = document.getElementById('bottomArea');
-const chatWrap = document.getElementById('chatWrap');
-let historyOpen = true;
-let menuOpen = false;
+const bottomWrap = document.getElementById('bottomWrap');
+const voiceBtn = document.getElementById('voiceHoldBtn');
+const textInput = document.getElementById('textInput');
+const keyboardBtn = document.getElementById('keyboardBtn');
 
-// 點加號彈窗
+let menuOpen = false;
+let keyboardOpen = false;
+const offsetVal = -120; // 往上推的距離，可自行調整
+
+// 重置所有狀態
+function resetAllState(){
+  ctrlBar.classList.remove('show');
+  textInput.style.display = 'none';
+  voiceBtn.style.display = 'block';
+  bottomWrap.style.transform = '';
+  menuOpen = false;
+  keyboardOpen = false;
+}
+
+// 加號按鈕：彈窗打開，關閉鍵盤
 addBtn.onclick = ()=>{
+  if(keyboardOpen){
+    // 鍵盤開著，先關鍵盤，再開彈窗
+    textInput.blur();
+    textInput.style.display = 'none';
+    voiceBtn.style.display = 'block';
+    keyboardOpen = false;
+  }
   menuOpen = !menuOpen;
-  ctrlBar.classList.toggle('show', menuOpen);
   if(menuOpen){
-    bottomArea.style.marginTop = '-10px';
-    chatWrap.style.marginBottom = '8px';
+    ctrlBar.classList.add('show');
+    bottomWrap.style.transform = `translateY(${offsetVal}px)`;
   }else{
-    bottomArea.style.marginTop = '';
-    chatWrap.style.marginBottom = '';
+    ctrlBar.classList.remove('show');
+    bottomWrap.style.transform = '';
   }
 }
 
+// 鍵盤按鈕：切換文字輸入，關閉彈窗
+keyboardBtn.onclick = ()=>{
+  if(menuOpen){
+    ctrlBar.classList.remove('show');
+    menuOpen = false;
+  }
+  keyboardOpen = !keyboardOpen;
+  if(keyboardOpen){
+    voiceBtn.style.display = 'none';
+    textInput.style.display = 'block';
+    textInput.focus();
+    bottomWrap.style.transform = `translateY(${offsetVal}px)`;
+  }else{
+    textInput.blur();
+    textInput.style.display = 'none';
+    voiceBtn.style.display = 'block';
+    bottomWrap.style.transform = '';
+  }
+}
+
+// 輸入框送出文字
+textInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && textInput.value.trim() !== ''){
+    addMsg(textInput.value.trim(), true);
+    textInput.value = '';
+    resetAllState();
+  }
+})
+
 // 點三角：打開【懸浮大歷史面板】
 historyToggle.onclick = ()=>{
-  // 把目前聊天內容複製到大面板
   fullHistoryBox.innerHTML = chatBox.innerHTML;
   fullHistoryPanel.classList.add('show');
 }
@@ -394,9 +453,13 @@ function addMsg(text, isUser){
   div.innerText = text;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
+  // 同步到大歷史面板
+  if(fullHistoryPanel.classList.contains('show')){
+    fullHistoryBox.innerHTML = chatBox.innerHTML;
+    fullHistoryBox.scrollTop = fullHistoryBox.scrollHeight;
+  }
 }
 
-const voiceBtn = document.getElementById('voiceHoldBtn');
 let isHold = false;
 voiceBtn.addEventListener('touchstart',()=>{
   isHold = true;
