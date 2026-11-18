@@ -8,7 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 html,body{
-  height:100%;
+  height:100vh;
   background:#f2f4f7;
   overflow:hidden;
   display:flex;
@@ -16,7 +16,6 @@ html,body{
 }
 body{
   padding:12px;
-  padding-bottom:12px;
 }
 .anim-area{
   flex: 0 0 60%;
@@ -29,14 +28,11 @@ body{
   margin-bottom:10px;
   flex-shrink:0;
 }
-/* 歷史與底部容器：gap=0，消除歷史框與輸入框之間空隙 */
 .bottom-wrapper{
   flex: 1;
   display:flex;
   flex-direction:column;
-  gap:0px;
   min-height:0;
-  transition: transform 0.25s ease;
 }
 .chat-wrap{
   flex:1;
@@ -47,6 +43,7 @@ body{
   display:flex;
   flex-direction:column;
   min-height:70px;
+  margin-bottom:2px; /* 聊天框 ↔ 輸入框：2px */
 }
 .chat-header{
   display:flex;
@@ -102,24 +99,22 @@ body{
   0%,80%,100%{transform:scale(0.7)}
   40%{transform:scale(1.1)}
 }
-/* 輸入區做絕對定位錨點 */
 .bottom-area{
   position:relative;
   flex-shrink:0;
 }
-/* 彈窗：輸入框【下方】，脫離文檔流，不會撐開版面 */
 .ctrl-bar{
   position:absolute;
   top:100%;
   left:0;
   right:0;
   background:#fff;
-  border-radius:24px;
-  padding:8px 8px;
+  border-radius:20px;
+  padding:6px 6px;
   display:none;
   justify-content:space-around;
   box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  margin-top:2px;
+  margin-top:2px; /* 輸入框 ↔ 彈窗：2px */
   z-index:10;
 }
 .ctrl-bar.show{
@@ -132,9 +127,9 @@ body{
   cursor:pointer;
 }
 .ctrl-icon{
-  width:46px;height:46px;
+  width:42px;height:42px;
   background:#f3f4f6;
-  border-radius:16px;
+  border-radius:14px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -178,7 +173,6 @@ body{
   align-items:center;
   justify-content:center;
 }
-/* 全螢幕歷史懸浮面板 */
 .full-history-panel{
   position:fixed;
   inset:16px;
@@ -285,7 +279,7 @@ body{
         <i class="fa fa-keyboard-o" style="font-size:24px;color:#333"></i>
       </button>
       <div id="voiceHoldBtn">按住 說話</div>
-      <input type="text" id="textInput" placeholder="輸入文字..." />
+      <input type="text" id="textInput" placeholder="輸入文字..." autocomplete="off" />
       <button class="icon-btn" id="emojiBtn" aria-label="表情">
         <i class="fa fa-smile-o" style="font-size:24px;color:#333"></i>
       </button>
@@ -307,7 +301,7 @@ body{
 <div class="modal-mask" id="settingModal">
   <div class="modal-box">
     <div class="modal-title">請輸入 Gemini API Key：</div>
-    <input class="modal-input" id="apiKeyInput" type="text">
+    <input class="modal-input" id="apiKeyInput" type="text" autocomplete="off">
     <div class="modal-row">
       <button class="modal-btn" onclick="closeModal()">取消</button>
       <button class="modal-btn" onclick="saveApiKey()">確定</button>
@@ -324,25 +318,21 @@ const fullHistoryPanel = document.getElementById('fullHistoryPanel');
 const settingModal = document.getElementById('settingModal');
 const ctrlBar = document.getElementById('ctrlBar');
 const addBtn = document.getElementById('addBtn');
-const bottomWrap = document.getElementById('bottomWrap');
 const voiceBtn = document.getElementById('voiceHoldBtn');
 const textInput = document.getElementById('textInput');
 const keyboardBtn = document.getElementById('keyboardBtn');
 
 let menuOpen = false;
 let keyboardOpen = false;
-const POPUP_SHIFT = -120;
 
 function resetAllState(){
   ctrlBar.classList.remove('show');
   textInput.style.display = 'none';
   voiceBtn.style.display = 'block';
-  bottomWrap.style.transform = '';
   menuOpen = false;
   keyboardOpen = false;
 }
 
-// 加號：僅彈窗開啟才上移
 addBtn.onclick = ()=>{
   if(keyboardOpen){
     textInput.blur();
@@ -351,21 +341,13 @@ addBtn.onclick = ()=>{
     keyboardOpen = false;
   }
   menuOpen = !menuOpen;
-  if(menuOpen){
-    ctrlBar.classList.add('show');
-    bottomWrap.style.transform = `translateY(${POPUP_SHIFT}px)`;
-  }else{
-    ctrlBar.classList.remove('show');
-    bottomWrap.style.transform = '';
-  }
+  ctrlBar.classList.toggle('show',menuOpen);
 }
 
-// 鍵盤：切換文字輸入，**不做上移**
 keyboardBtn.onclick = ()=>{
   if(menuOpen){
     ctrlBar.classList.remove('show');
     menuOpen = false;
-    bottomWrap.style.transform = '';
   }
   keyboardOpen = !keyboardOpen;
   if(keyboardOpen){
@@ -380,8 +362,8 @@ keyboardBtn.onclick = ()=>{
 }
 
 textInput.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' && textInput.value.trim() !== ''){
-    addMsg(textInput.value.trim(), true);
+  if(e.key === 'Enter' && textInput.value.trim()){
+    addMsg(textInput.value.trim(),true);
     textInput.value = '';
     resetAllState();
   }
@@ -395,11 +377,11 @@ closeFullHistory.onclick = ()=>{
   fullHistoryPanel.classList.remove('show');
 }
 
-function openSetting(){ settingModal.style.display = 'flex'; }
-function closeModal(){ settingModal.style.display = 'none'; }
+function openSetting(){ settingModal.style.display='flex'; }
+function closeModal(){ settingModal.style.display='none'; }
 function saveApiKey(){
   const key = document.getElementById('apiKeyInput').value.trim();
-  localStorage.setItem('gemini_key', key);
+  localStorage.setItem('gemini_key',key);
   closeModal();
 }
 function openCam(){}
@@ -414,9 +396,9 @@ function showLoading(){
   chatBox.scrollTop = chatBox.scrollHeight;
   return div;
 }
-function addMsg(text, isUser){
+function addMsg(text,isUser){
   const div = document.createElement('div');
-  div.className = 'msg ' + (isUser ? 'user' : 'ai');
+  div.className = 'msg '+(isUser?'user':'ai');
   div.innerText = text;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -434,11 +416,11 @@ voiceBtn.addEventListener('touchstart',()=>{
 voiceBtn.addEventListener('touchend',()=>{
   isHold = false;
   voiceBtn.innerText = '按住 說話';
-  addMsg('我', true);
+  addMsg('我',true);
   const load = showLoading();
   setTimeout(()=>{
     load.remove();
-    addMsg('請先點設定填入 API Key！', false);
+    addMsg('請先點設定填入 API Key！',false);
   },1200)
 })
 </script>
